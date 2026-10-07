@@ -1,5 +1,22 @@
 # tarea
 
+## Presentación web «Los juegos del sacrificio»
+
+Estilo holográfico rojo inspirado en el diagrama con el que Tengen explica el
+juego (Jujutsu Kaisen): fondo negro con retícula roja, banners hexagonales de
+borde doble, líneas de conexión con glow, esfera central pulsante, subtítulos
+estilo anime y barra de pestañas/ progreso como un reproductor.
+
+- **Archivo:** `presentacion/index.html` (8 diapositivas, reveal.js empaquetado localmente, sin internet)
+- **Contenido:** portada · Tengen (figura vectorial) · diagrama de nodos · reglas · cita · cronograma · reverso del Gokumonkyō · cierre
+- **Navegación:** flechas/espacio del teclado, pestañas numeradas arriba, barra roja de progreso abajo (el botón ⤢ entra en pantalla completa)
+
+```bash
+cd presentacion
+python3 -m http.server 8000    # abrir http://localhost:8000
+# o simplemente abrir index.html en el navegador
+```
+
 ## Plantilla de presentación (PowerPoint)
 
 Este repositorio contiene un script en Python que genera una plantilla de

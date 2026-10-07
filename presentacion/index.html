@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Los Juegos del Sacrificio — Tengen explica</title>
+  <link rel="stylesheet" href="vendor/reveal/reset.css">
+  <link rel="stylesheet" href="vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+  <!-- Fondo holográfico fijo -->
+  <div class="fondo"></div>
+  <div class="particula" style="left:12%; top:24%; animation-delay:0s"></div>
+  <div class="particula" style="left:83%; top:18%; animation-delay:1.4s"></div>
+  <div class="particula" style="left:68%; top:72%; animation-delay:2.6s"></div>
+  <div class="particula" style="left:22%; top:78%; animation-delay:3.8s"></div>
+  <div class="particula" style="left:47%; top:12%; animation-delay:4.5s"></div>
+
+  <!-- Pestañas superiores (homenaje al reproductor) -->
+  <nav class="tabs" aria-label="Diapositivas">
+    <button class="tab activa" data-i="0">1 <span>Sacrificio</span></button>
+    <button class="tab" data-i="1">2 <span>Tengen</span></button>
+    <button class="tab" data-i="2">3 <span>Diagrama</span></button>
+    <button class="tab" data-i="3">4 <span>Reglas</span></button>
+    <button class="tab" data-i="4">5 <span>Cita</span></button>
+    <button class="tab" data-i="5">6 <span>Tiempo</span></button>
+    <button class="tab" data-i="6">7 <span>Reverso</span></button>
+    <button class="tab" data-i="7">8 <span>Fin</span></button>
+  </nav>
+
+  <!-- Subtítulo estilo anime -->
+  <div class="subtitulo vacio" id="subtitulo"></div>
+
+  <!-- Barra inferior: progreso + contador + pantalla completa -->
+  <div class="barra-inferior">
+    <div class="progreso-pista"><div class="progreso-relleno" id="progreso"></div></div>
+    <div class="barra-datos">
+      <span class="contador" id="contador">01 / 08</span>
+      <button class="pantalla-completa" id="pantallaCompleta" title="Pantalla completa">⤢</button>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ============================================================
+           1 · PORTADA
+           ============================================================ -->
+      <section class="portada" data-sub="Hoy les explicaré los juegos del sacrificio.">
+        <div class="kanji-fondo">犠牲</div>
+        <div class="kanji-lateral izq">獄門疆 ・ 結界 ・ 天元</div>
+        <div class="kanji-lateral der">犠牲 ・ 奉納 ・ 報酬</div>
+
+        <div class="titulo">
+          <div class="banner titular">
+            <div class="n1"><div class="n2">
+              <div class="txt">Los juegos del sacrificio</div>
+            </div></div>
+          </div>
+          <p class="sub">El Maestro Tengen explica las reglas</p>
+        </div>
+
+        <div class="datos"><span class="pulso"></span>Grabación del ritual · Sesión informativa</div>
+      </section>
+
+      <!-- ============================================================
+           2 · EL NARRADOR
+           ============================================================ -->
+      <section data-sub="Me llaman el Maestro Tengen… y estas son sus reglas.">
+        <div class="kanji-fondo">天元</div>
+        <div class="tengen-grid">
+          <!-- Figura vectorial: monje encapuchado de cuatro ojos -->
+          <svg class="figura" viewBox="0 0 300 420" role="img" aria-label="Figura estilizada del Maestro Tengen">
+            <g fill="none" stroke="#d31126" stroke-width="2">
+              <!-- aura holográfica -->
+              <circle cx="150" cy="225" r="142" stroke-dasharray="4 12" opacity="0.35"/>
+              <circle cx="150" cy="225" r="128" stroke-dasharray="1 18" opacity="0.25"/>
+            </g>
+            <!-- túnica -->
+            <path d="M24 420 C36 316 78 274 150 274 C222 274 264 316 276 420 Z"
+                  fill="#e9e5df" stroke="#d31126" stroke-width="2.5"/>
+            <!-- capucha alta -->
+            <path d="M106 274 L106 96 Q106 38 150 38 Q194 38 194 96 L194 274 Z"
+                  fill="#f2efe9" stroke="#d31126" stroke-width="2.5"/>
+            <!-- ojo izquierdo superior -->
+            <ellipse cx="127" cy="118" rx="15" ry="8.5" fill="#faf8f3" stroke="#2b0410" stroke-width="2"/>
+            <circle cx="127" cy="118" r="4.5" fill="#1c0a12"/>
+            <circle cx="129" cy="116" r="1.4" fill="#fff"/>
+            <!-- ojo derecho superior -->
+            <ellipse cx="173" cy="118" rx="15" ry="8.5" fill="#faf8f3" stroke="#2b0410" stroke-width="2"/>
+            <circle cx="173" cy="118" r="4.5" fill="#1c0a12"/>
+            <circle cx="175" cy="116" r="1.4" fill="#fff"/>
+            <!-- ojo izquierdo inferior -->
+            <ellipse cx="129" cy="158" rx="13.5" ry="7.5" fill="#faf8f3" stroke="#2b0410" stroke-width="2"/>
+            <circle cx="129" cy="158" r="4" fill="#1c0a12"/>
+            <!-- ojo derecho inferior -->
+            <ellipse cx="171" cy="158" rx="13.5" ry="7.5" fill="#faf8f3" stroke="#2b0410" stroke-width="2"/>
+            <circle cx="171" cy="158" r="4" fill="#1c0a12"/>
+            <!-- boca -->
+            <path d="M136 214 Q150 221 164 214" stroke="#2b0410" stroke-width="2.5" fill="none"/>
+            <!-- pliegue central de la capucha -->
+            <path d="M150 44 L150 92" stroke="#d31126" stroke-width="1.5" opacity="0.55"/>
+            <!-- brazos cruzados -->
+            <rect x="66" y="318" width="168" height="34" rx="17"
+                  fill="#e2ded7" stroke="#d31126" stroke-width="2.5" transform="rotate(-4 150 335)"/>
+            <rect x="66" y="352" width="168" height="34" rx="17"
+                  fill="#e9e5df" stroke="#d31126" stroke-width="2.5" transform="rotate(4 150 369)"/>
+            <!-- solapa de la túnica -->
+            <path d="M150 276 L112 320 M150 276 L188 320" stroke="#d31126" stroke-width="2" fill="none"/>
+          </svg>
+
+          <div class="tengen-datos">
+            <div class="banner">
+              <div class="n1"><div class="n2">
+                <div class="txt"><span class="kanji">天元</span>El Maestro Tengen</div>
+              </div></div>
+            </div>
+            <ul>
+              <li>Guardián inmortal de las <strong>barreras</strong> que sostienen el mundo.</li>
+              <li>Presido el <strong>Gokumonkyō</strong> y conozco cada una de sus reglas.</li>
+              <li>Si el juego se rompe, las barreras caen con él.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           3 · EL DIAGRAMA
+           ============================================================ -->
+      <section class="diagrama-slide" data-sub="El sacrificio es el eje al que gira todo el juego.">
+        <div class="diagrama">
+          <svg class="cableado" viewBox="0 0 1160 540" preserveAspectRatio="none" aria-hidden="true">
+            <line class="fantasma" x1="60"   y1="30"  x2="1100" y2="510"/>
+            <line class="fantasma" x1="1100" y1="30"  x2="60"   y2="510"/>
+            <line x1="580" y1="40"  x2="580" y2="215"/>
+            <line x1="320" y1="270" x2="515" y2="270"/>
+            <line x1="645" y1="270" x2="880" y2="270"/>
+            <line x1="580" y1="370" x2="580" y2="505"/>
+          </svg>
+
+          <div class="nodo arriba">
+            <div class="banner"><div class="n1"><div class="n2">
+              <div class="txt"><span class="kanji">遊戯</span>El juego</div>
+            </div></div></div>
+          </div>
+
+          <div class="nodo izquierda">
+            <div class="banner"><div class="n1"><div class="n2">
+              <div class="txt"><span class="kanji">結界</span>Las barreras</div>
+            </div></div></div>
+          </div>
+
+          <div class="esfera" aria-hidden="true"></div>
+
+          <div class="nodo derecha">
+            <div class="banner"><div class="n1"><div class="n2">
+              <div class="txt"><span class="kanji">奉納</span>La ofrenda</div>
+            </div></div></div>
+          </div>
+
+          <div class="nodo centro">
+            <div class="banner grande"><div class="n1"><div class="n2">
+              <div class="txt"><span class="kanji">犠牲</span>El sacrificio</div>
+            </div></div></div>
+          </div>
+
+          <div class="nodo abajo">
+            <div class="banner"><div class="n1"><div class="n2">
+              <div class="txt"><span class="kanji">報酬</span>La recompensa</div>
+            </div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           4 · LAS REGLAS
+           ============================================================ -->
+      <section data-sub="Tres reglas. Ni una más, ni una menos.">
+        <div class="kanji-fondo">規則</div>
+
+        <div class="reglas-titulo">
+          <div class="banner grande"><div class="n1"><div class="n2">
+            <div class="txt"><span class="kanji">三箇条</span>Las tres reglas</div>
+          </div></div></div>
+        </div>
+
+        <div class="reglas">
+          <div class="regla fragment">
+            <div class="num">
+              <div class="banner"><div class="n1"><div class="n2">
+                <div class="txt">01</div>
+              </div></div></div>
+            </div>
+            <h3>Entrada</h3>
+            <p>Quien cruza la barrera queda sujeto al juego: no podrá salir hasta que el ritual termine.</p>
+          </div>
+
+          <div class="regla fragment">
+            <div class="num">
+              <div class="banner"><div class="n1"><div class="n2">
+                <div class="txt">02</div>
+              </div></div></div>
+            </div>
+            <h3>Ofrenda</h3>
+            <p>Cada participante sacrifica algo irreemplazable —una técnica, un recuerdo, una vida— y lo entrega al centro.</p>
+          </div>
+
+          <div class="regla fragment">
+            <div class="num">
+              <div class="banner"><div class="n1"><div class="n2">
+                <div class="txt">03</div>
+              </div></div></div>
+            </div>
+            <h3>Salida</h3>
+            <p>Existe una regla que permite dejarlo… pero solo quien posee el reverso del Gokumonkyō puede invocarla.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           5 · CITA
+           ============================================================ -->
+      <section class="cita" data-sub="">
+        <div class="kanji-fondo">言霊</div>
+        <div class="comillas">“</div>
+        <blockquote>
+          Las barreras del juego me rechazan,<br>
+          así que no tengo más información.
+        </blockquote>
+        <cite>— Maestro Tengen</cite>
+      </section>
+
+      <!-- ============================================================
+           6 · CRONOGRAMA
+           ============================================================ -->
+      <section data-sub="Depende del progreso del juego… calculo unos dos meses.">
+        <div class="kanji-fondo">時間</div>
+
+        <p class="crono-cita">«Depende del progreso del juego, pero diría que <strong>unos dos meses</strong>.»</p>
+
+        <div class="crono">
+          <div class="hito fragment">
+            <div class="etiqueta arriba-txt">
+              <h3>Fase 1 · Apertura</h3>
+              <p>Reunir a los participantes y abrir la barrera del juego.</p>
+            </div>
+            <div class="punto"></div>
+          </div>
+
+          <div class="hito fragment">
+            <div class="punto"></div>
+            <div class="etiqueta abajo-txt">
+              <h3>Fase 2 · El ritual</h3>
+              <p>Cada ofrenda alimenta el centro. El progreso no se detiene.</p>
+            </div>
+          </div>
+
+          <div class="hito fragment">
+            <div class="etiqueta arriba-txt">
+              <h3>Fase 3 · Desenlace</h3>
+              <p>Dos meses como máximo… si el juego no exige más.</p>
+            </div>
+            <div class="punto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           7 · EL REVERSO
+           ============================================================ -->
+      <section data-sub="Van a necesitar el reverso del Gokumonkyō para terminarlo.">
+        <div class="kanji-fondo">獄門疆</div>
+
+        <div class="reglas-titulo">
+          <div class="banner grande"><div class="n1"><div class="n2">
+            <div class="txt"><span class="kanji">開</span>El reverso del Gokumonkyō</div>
+          </div></div></div>
+        </div>
+
+        <div class="reverso-grid">
+          <div class="lado">
+            <div class="glifo">獄門疆</div>
+            <h3>El anverso</h3>
+            <p>Sella lo que no debe salir. Es la cárcel: lo que queda dentro, no vuelve a salir jamás.</p>
+          </div>
+
+          <div class="flecha-media">⟵ ⟷ ⟶</div>
+
+          <div class="lado">
+            <div class="glifo">裏</div>
+            <h3>El reverso</h3>
+            <p>Abre lo que no debe entrar. Es la llave del ritual: sin él, el juego no puede terminar.</p>
+          </div>
+        </div>
+
+        <p class="reverso-nota">Sin el reverso, el sacrificio queda sellado para siempre.</p>
+      </section>
+
+      <!-- ============================================================
+           8 · CIERRE
+           ============================================================ -->
+      <section class="cierre" data-sub="El juego ha terminado… ¿o quizás recién comienza?">
+        <div class="kanji-fondo">終</div>
+
+        <div class="chevrons"><span>❮❮</span><span>❯❯</span></div>
+
+        <div class="orbe"><span>100 %</span></div>
+
+        <div class="banner grande"><div class="n1"><div class="n2">
+          <div class="txt"><span class="kanji">終了</span>Fin del juego</div>
+        </div></div></div>
+
+        <p class="pregunta">¿Preguntas o comentarios?</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="vendor/reveal/reveal.js"></script>
+  <script>
+    const total = document.querySelectorAll('.reveal .slides > section').length;
+    const secciones = [...document.querySelectorAll('.reveal .slides > section')];
+    const tabs = [...document.querySelectorAll('.tab')];
+    const subtitulo = document.getElementById('subtitulo');
+    const progreso = document.getElementById('progreso');
+    const contador = document.getElementById('contador');
+
+    function pintar(i) {
+      const n = String(i + 1).padStart(2, '0');
+      const t = String(total).padStart(2, '0');
+      contador.textContent = `${n} / ${t}`;
+      progreso.style.width = `${(i / (total - 1)) * 100}%`;
+      tabs.forEach((tab, k) => tab.classList.toggle('activa', k === i));
+      const sub = secciones[i].dataset.sub || '';
+      subtitulo.textContent = sub;
+      subtitulo.classList.toggle('vacio', sub === '');
+    }
+
+    Reveal.initialize({
+      hash: true,
+      controls: false,
+      progress: false,
+      slideNumber: false,
+      transition: 'fade',
+      transitionSpeed: 'fast',
+      backgroundTransition: 'default',
+      width: 1280,
+      height: 720,
+      margin: 0.04
+    });
+
+    Reveal.on('ready', () => pintar(Reveal.getIndices().indexh));
+    Reveal.on('slidechanged', e => pintar(e.indexh));
+
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      Reveal.slide(parseInt(tab.dataset.i, 10));
+      tab.blur();  // que las flechas del teclado sigan navegando
+    }));
+
+    document.getElementById('pantallaCompleta').addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    });
+  </script>
+</body>
+</html>
