@@ -267,8 +267,9 @@
       const rr = RES.casos[caso], espM = (window.MODAL || {}).espectro;
       deriva.tx.textContent = rr.sismico
         ? (est.osc && espM && espM[rr.R]
-            ? `oscilación del modo T₁ = ${n2(T1, 3)} s · amplitud Δ = ${n2(espM[rr.R].delta_inel)} cm`
-              + (est.cd ? " (Cd·δ)" : " (δ elástica)")
+            ? `oscilación del modo T₁ = ${n2(T1, 3)} s · ` + (est.cd
+                ? `amplitud Δ de diseño = ${n2(espM[rr.R].delta_inel)} cm (Cd·δ)`
+                : `amplitud δ elástica = ${n2(espM[rr.R].delta_el)} cm (Cd = ${n2(Cd, 2)} aparte)`)
             : `Δ sísmica = ${n2(rr.deriva)} cm · Cd·Δ = ${n2(rr.deriva_amplificada)} cm`)
         : `aplanamiento del arco = ${n2(rr.deriva)} cm`;
       deriva.tx.setAttribute("x", Math.max(x0, xd) + 12);

@@ -121,7 +121,8 @@
       txtDelta.textContent =
         `Δ de diseño = ${fmt(res.deriva_amplificada, 2)} cm = Cd·δ (δ = ${fmt(res.deriva, 2)} cm)`;
       txtDato.textContent =
-        `Δ dinámico (T₁) = ${fmt(esp.delta_inel, 2)} cm · límite ${fmt(esp.deriva_lim, 0)} cm`;
+        `Δ dinámico (T₁) = ${fmt(esp.delta_inel, 2)} cm · límite ${fmt(esp.deriva_lim, 0)} cm` +
+        `  ·  la deformada se anima con ese Δ (modo 1) sobre el aplanamiento por gravedad`;
     } };
   }
   const c6 = escenaCmp("lienzoR6", 6), c2 = escenaCmp("lienzoR2", 2);
@@ -211,8 +212,9 @@
       `<div class="nota">El primer modo es una <b>traslación pura</b>: los dos pilares se mueven juntos y
       el arco se traslada con ellos. <b>T₁ = ${fmt(m1.T, 3)} s</b> (f = ${fmt(m1.f, 2)} Hz),
       participación modal Γ₁ = ${fmt(m1.gamma, 3)} y <b>${fmt(m1.porc, 1)} %</b> de la masa
-      efectiva; los modos siguientes son locales del arco (T₂ = ${fmt(D.modos[1].T, 3)} s,
-      ${fmt(D.modos[1].porc, 1)} % de la masa), así que la respuesta sísmica la gobierna el modo 1.
+      efectiva; los modos siguientes son locales del arco (T₂ = ${fmt(D.modos[1].T, 3)} s) y
+      <b>no aportan masa en la dirección del sismo</b> (< 0,1 % cada uno), así que la respuesta la
+      gobierna por completo el modo 1.
       Con las masas sísmicas reales (D + 0,5L + pasarela + peso propio) el pórtico pesa
       <b>${fmt(D.W, 0)} kg</b> contra 7 798 kg de la planilla (+39 %).
       T₁ queda en la <b>rama descendente</b> del espectro (T₁ &gt; TC = ${fmt(D.TC, 3)} s):
@@ -250,13 +252,16 @@
     svg.appendChild(el("text", { x: (P.X(0) + P.X(Tmax)) / 2, y: H - 12, fill: "#9fb3d1",
                                  "font-size": 11.5, "text-anchor": "middle" }, "período T (s)"));
     svg.appendChild(el("text", { x: 16, y: P.Y(Amax) - 14, fill: "#9fb3d1", "font-size": 11.5 }, "Ad(T)"));
-    const marca = (T, txt, col, w, arriba) => {
+    const marca = (T, txt, col, w, vertical) => {
       svg.appendChild(el("line", { x1: P.X(T), y1: P.Y(0), x2: P.X(T), y2: P.Y(Amax), stroke: col,
                                    "stroke-width": w || 1.1, "stroke-dasharray": "4 4" }));
-      svg.appendChild(el("text", { x: P.X(T) + 4, y: arriba ? P.Y(Amax) + 13 : P.Y(0) - 9,
-                                   fill: col, "font-size": 10.5, "font-family": "monospace" }, txt));
+      const y = vertical ? P.Y(0.24) : P.Y(Amax) + 13;
+      const atr = { x: vertical ? P.X(T) - 6 : P.X(T), y, fill: col, "font-size": 10.5,
+                    "text-anchor": "middle", "font-family": "monospace" };
+      if (vertical) atr.transform = `rotate(-90 ${P.X(T) - 6} ${y})`;
+      svg.appendChild(el("text", atr, txt));
     };
-    marca(D.Ta, `Ta = ${fmt(D.Ta, 2)} s`, "#6b81a3", 1.1, false);
+    marca(D.Ta, `Ta = ${fmt(D.Ta, 2)} s`, "#8fa6c8", 1.1, false);
     marca(D.TC, `TC = ${fmt(D.TC, 3)} s`, "#8fa6c8", 1.1, false);
     marca(T1, `T₁ = ${fmt(T1, 3)} s`, "#fbbf24", 1.8, true);
     [["#38bdf8", 6, "R = 6"], ["#f472b6", 2, "R = 2"]].forEach((cv) => {
@@ -273,10 +278,10 @@
                                    "font-size": 11.5, "font-family": "monospace" },
         `${nom}: Ad(T₁) = ${fmt(esp.Ad_T1, 4)}`));
     });
-    svg.appendChild(el("text", { x: P.X(0.03), y: P.Y(0.47), fill: "#9fb3d1", "font-size": 11.5,
+    svg.appendChild(el("text", { x: P.X(0.03), y: P.Y(0.445), fill: "#9fb3d1", "font-size": 11,
                                  "font-family": "monospace" }, "meseta 2,4·AA/R"));
-    svg.appendChild(el("text", { x: P.X(1.22), y: P.Y(0.38), fill: "#9fb3d1", "font-size": 11.5,
-                                 "font-family": "monospace" }, "rama descendente TC/T"));
+    svg.appendChild(el("text", { x: P.X(1.30), y: P.Y(0.24), fill: "#9fb3d1", "font-size": 11,
+                                 "font-family": "monospace" }, "rama TC/T"));
     const a6 = D.espectro[6], a2 = D.espectro[2];
     document.getElementById("txtEspectro").innerHTML =
       `<div class="nota">La forma espectral es la que documentó el cuaderno (ordenada de la meseta
