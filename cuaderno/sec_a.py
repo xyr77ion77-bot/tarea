@@ -138,8 +138,8 @@ def sec_datos():
         ["Cielo raso / aislante", "D₃", "10,0 kg/m²", "carga muerta"],
         ["Carga variable de techo (mantenimiento)", "L", "100 kg/m²", "COVENIN 2002-88, cubierta no accesible"],
         ["Cargas colgadas (acústica, iluminación, ductos)", "—", "15,0 kg/m²", "carga muerta adicional"],
-        ["Peso propio de la cercha", "PP est", "35,0 kg/m²", "estimado por el método del área tributaria"],
-        ["Peso propio de la pasarela de servicio", "PP pas", "25,0 kg/m²", "pasarela de mantenimiento"]],
+        ["Peso propio de la cercha (lineal por pórtico)", "PP est", "35,0 kg/m", "estimado por el área tributaria; se contrasta con el peso real de los perfiles (≈ 73 kg/m)"],
+        ["Peso propio de la pasarela de servicio", "PP pas", "25,0 kg/m", "carga lineal por pórtico"]],
        caption="Tabla 0.4 — Acciones consideradas sobre un pórtico tipo.")}
 
 <h3>0.4 Normas de referencia</h3>
