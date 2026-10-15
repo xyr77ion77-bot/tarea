@@ -320,6 +320,14 @@ def verificacion_empuje(m):
 # ---------------------------------------------------------------------------
 # casos del pórtico
 # ---------------------------------------------------------------------------
+def nodo_de(m, nombre):
+    """Índice del nudo por nombre."""
+    for i, n in enumerate(m["nodos"]):
+        if n["n"] == nombre:
+            return i
+    raise KeyError(nombre)
+
+
 def campos_extra(m, nom, tir):
     """Campos de desplazamiento separados: sólo gravedad y sólo sismo (para animar)."""
     campos = {}
@@ -380,22 +388,46 @@ def correr(verboso=True, datos_js=True):
         phiD = MOD.R["cercha"]["phiPn_diag"]
         phiM = MOD.R["cercha"]["phiPn_montante"]
         phiT = MOD.R["tirante"]["phiPn"]
-        phiP, phiMn = MOD.R["columna"]["phiPn"] * 1000.0, MOD.R["columna"]["phiMn"] * 1000.0
         mx = lambda txt: max([abs(e["N"]) for e in esf.values() if txt in e["n"]] or [0.0])
-        pil = idx["pilar izquierdo"]
-        M_base = abs(esf[pil]["M1"])                   # kg·cm en la base del pilar
-        _pc = abs(esf[pil]["N"]) / MOD.R["columna"]["phiPn"] / 1000.0
-        _pr = M_base / 100.0 / (MOD.R["columna"]["phiMn"] * 1000.0)   # kg·m / (t·m→kg·m)
-        col_dc = _pc / 2 + _pr if _pc < 0.2 else _pc + 8.0 / 9.0 * _pr
+        # Los dos pilares pueden repartirse el corte de forma desigual (el aplanamiento del
+        # arco es simétrico-espejo y el sismo es traslación pura): gobierna el más cargado.
+        pilares = [idx["pilar izquierdo"], idx["pilar derecho"]]
+
+        def _pilar(i):
+            Mb = abs(esf[i]["M1"])                                  # kg·cm
+            Np = abs(esf[i]["N"])
+            pc = Np / MOD.R["columna"]["phiPn"] / 1000.0
+            pr = Mb / 100.0 / (MOD.R["columna"]["phiMn"] * 1000.0)
+            return dict(M=Mb, N=Np, V=abs(esf[i]["Vy1"]), Vs=esf[i]["Vy1"],
+                        dc=(pc / 2 + pr) if pc < 0.2 else (pc + 8.0 / 9.0 * pr))
+
+        _pil = [_pilar(i) for i in pilares]
+        g = max(range(2), key=lambda k: _pil[k]["dc"])
+        pil = pilares[g]
+        M_base, col_dc = _pil[g]["M"], _pil[g]["dc"]
         cd, lim = ref["Cd"], ref["deriva_lim_cm"]
-        deriva = abs(M.despl("e0")[0])
         R = m["casos"][nom]["R"]
+        # La deriva sísmica es la del campo SÓLO-LATERAL (Fh): con el arco articulado y los
+        # pilares iguales, las dos cabezas se mueven lo mismo y el arco se traslada rígido, así
+        # que la deriva sólo depende de la ménsula. El campo gravitatorio aporta aparte el
+        # aplanamiento del arco (las cabezas se separan), que no es demanda sísmica.
+        osc = campos_extra(m, nom, tir) if m["casos"][nom]["Fh"] else None
+        deriva_neta = M.despl("e0")[0]
+        deriva_lat = osc["lat"][nodo_de(m, "e0")]["u"] if osc else deriva_neta
+        deriva_grav = osc["grav"][nodo_de(m, "e0")]["u"] if osc else 0.0
+        deriva = abs(deriva_lat) if osc else abs(deriva_neta)
         resultados["casos"][nom] = dict(
             label=m["casos"][nom]["label"], R=R, nodos=nodos,
             tirante_N=tir_n, deriva=deriva, deriva_amplificada=cd * deriva,
+            deriva_lat=abs(deriva_lat), deriva_neta=deriva_neta,
+            deriva_grav=deriva_grav, sismico=bool(osc),
             deriva_lim=lim, deriva_ok=cd * deriva <= lim,
-            H_arco=tir_n + abs(esf[pil]["Vy1"]),
-            M_base=M_base / 100.0, V_base=abs(esf[pil]["Vy1"]), N_pilar=abs(esf[pil]["N"]),
+            H_arco=(tir_n if tir_n else abs(_pil[0]["Vs"])),   # empuje que llega al arranque
+            M_base=M_base / 100.0, V_base=_pil[g]["V"], N_pilar=_pil[g]["N"],
+            V_base_total=_pil[0]["Vs"] + _pil[1]["Vs"], V_col=dict(
+                izquierdo=dict(M=_pil[0]["M"] / 100.0, V=_pil[0]["Vs"], dc=_pil[0]["dc"]),
+                derecho=dict(M=_pil[1]["M"] / 100.0, V=_pil[1]["Vs"], dc=_pil[1]["dc"]),
+                gobierna="derecho" if g == 1 else "izquierdo"),
             axial={str(i): round(e["N"], 1) for i, e in esf.items()},
             momento={str(i): round(e["M1"] / 100.0, 2) for i, e in esf.items()},
             momento2={str(i): round(e["M2"] / 100.0, 2) for i, e in esf.items()},
@@ -406,15 +438,16 @@ def correr(verboso=True, datos_js=True):
                     montante=mx("montante") / phiM, tirante=abs(tir_n) / phiT,
                     pilar=col_dc),
         )
-        if m["casos"][nom]["Fh"]:                      # caso sísmico: animación
-            resultados.setdefault("oscilacion", {})[nom] = campos_extra(m, nom, tir)
-        elif False:
-            pass
+        if osc:                                        # caso sísmico: animación
+            resultados.setdefault("oscilacion", {})[nom] = osc
         if verboso:
-            ok = "OK" if cd * deriva <= lim else f"NO CUMPLE (lím {lim:g} cm)"
-            print(f"  {nom:12s} T tirante = {tir_n / 1000:7.2f} t | H en pilar = {abs(esf[pil]['Vy1']) / 1000:7.2f} t"
-                  f" | M base = {M_base / 100 / 1000:7.2f} t·m | Δ tope = {deriva:6.3f} cm"
-                  f" | Cd·Δ = {cd * deriva:6.2f} cm  {ok}")
+            ok = ("OK" if cd * deriva <= lim else f"NO CUMPLE (lím {lim:g} cm)") if osc \
+                else "(caso sin sismo: la deriva no se compara)"
+            extra = (f" | (aplanamiento por gravedad {deriva_grav:+.3f} cm, neta {deriva_neta:+.3f} cm)"
+                     if osc else "")
+            print(f"  {nom:12s} T tirante = {tir_n / 1000:7.2f} t | H en pilar = {_pil[g]['V'] / 1000:7.2f} t"
+                  f" | M base = {M_base / 100 / 1000:7.2f} t·m | Δ lateral = {deriva:6.3f} cm"
+                  f" | Cd·Δ = {cd * deriva:6.2f} cm  {ok}{extra}")
     resultados["verificacion_empuje"] = verificacion_empuje(m)
     resultados["pesos_propios"] = pesos_propios(m)
     resultados["verificacion_empuje"]["H_sin_tirante_solver"] = \

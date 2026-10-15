@@ -10,7 +10,10 @@
   const REF_R = { servicio: null, mayorada: null, sismo_R6: 6, sismo_R2: 2, sin_tirante: "sin" };
   const ref = M.referencia.de_cuaderno;
   const est = { caso: "mayorada", escala: 20, prog: 0, osc: false, t: 0,
-                cargas: true, axial: true, mom: false };
+                cargas: true, axial: true, mom: false, vel: 0.25, cd: true };
+  // nivel B: período y factor de amplificación de la oscilación (dinamica.py → datos2.js)
+  const T1 = (window.MODAL && window.MODAL.T1) || 0.875;      // s
+  const Cd = (window.MODAL && window.MODAL.Cd) || 4.25;
 
   // ---------------------------------------------------------------- pantalla
   const W = 1000, H = 620, mar = { l: 78, r: 190, t: 54, b: 62 };
@@ -18,6 +21,7 @@
   const k = Math.min((W - mar.l - mar.r) / (mx1 - mx0), (H - mar.t - mar.b) / (my1 - my0));
   const PX = (xm) => mar.l + (xm - mx0) * k;
   const PY = (ym) => H - mar.b - (ym - my0) * k;
+  const n2 = (x, d) => Number(x).toFixed(d == null ? 2 : d).replace(".", ",");
   const NS = "http://www.w3.org/2000/svg";
   const el = (t, a, txt) => {
     const e = document.createElementNS(NS, t);
@@ -158,12 +162,18 @@
   })();
 
   /* ---------------------------------------------------------------- render */
+  /* Campo de desplazamientos de un nudo (cm), todos del análisis matricial.
+     · caso sin sismo → desplazamiento total del caso.
+     · caso sísmico   → gravedad + campo lateral: en reposo el del cuaderno (V_col) y al
+       oscilar el MODO FUNDAMENTAL T1 de dinamica.py, con amplitud δ·φ o Δ = Cd·δ·φ. */
   function campo(caso, i) {
     const osc = RES.oscilacion && RES.oscilacion[caso], p = est.prog;
     if (!osc) { const d = RES.casos[caso].nodos[i]; return { u: d.u * p, v: d.v * p }; }
-    const gr = osc.grav[i], l = osc.lat[i];
-    const fl = 1 + (est.osc ? 0.85 * Math.sin(2 * Math.PI * est.t / 1.7) : 0);
-    return { u: (gr.u + l.u * fl) * p, v: (gr.v + l.v * fl) * p };
+    const gr = osc.grav[i];
+    const R = RES.casos[caso].R, esp = (window.MODAL || {}).espectro;
+    const cm = (est.osc && esp && esp[R]) ? esp[R].campo_el[i] : osc.lat[i];
+    const amp = est.osc ? Math.sin(2 * Math.PI * est.t * est.vel / T1) * (est.cd ? Cd : 1) : 1;
+    return { u: (gr.u + cm.u * amp) * p, v: (gr.v + cm.v * amp) * p };
   }
   const colorN = (n, nmax) => {
     const t = Math.min(1, Math.abs(n) / nmax), L = 74 - 26 * t, S = 55 + 40 * t;
@@ -179,6 +189,9 @@
 
     M.elementos.forEach((e, i) => {
       const [x1, y1] = p(e.a), [x2, y2] = p(e.b), L = lineas[i], N = axial[String(i)];
+      const [gx1, gy1] = pos(e.a, null), [gx2, gy2] = pos(e.b, null);   // contorno sin deformar
+      L.ghost.setAttribute("x1", gx1); L.ghost.setAttribute("y1", gy1);
+      L.ghost.setAttribute("x2", gx2); L.ghost.setAttribute("y2", gy2);
       L.e.setAttribute("x1", x1); L.e.setAttribute("y1", y1);
       L.e.setAttribute("x2", x2); L.e.setAttribute("y2", y2);
       const esTirante = e.n === "tirante de cabeza";
@@ -205,7 +218,7 @@
       const a = p(M.elementos[iTir].a), b = p(M.elementos[iTir].b);
       etiqTirante.setAttribute("x", (a[0] + b[0]) / 2);
       etiqTirante.setAttribute("y", a[1] + 22);
-      etiqTirante.textContent = `tirante Ø1-1/2″   T = ${(NT / 1000).toFixed(2)} t`;
+      etiqTirante.textContent = `tirante Ø1-1/2″   T = ${n2(NT / 1000)} t`;
     } else {
       etiqTirante.setAttribute("x", PX(8.8)); etiqTirante.setAttribute("y", PY(8.5) + 22);
       etiqTirante.textContent = "SIN tirante de cabeza";
@@ -235,8 +248,8 @@
       fch.l.setAttribute("x1", x - 6); fch.l.setAttribute("y1", yf);
       fch.l.setAttribute("x2", x + 56); fch.l.setAttribute("y2", yf);
       fch.t.setAttribute("d", `M${x + 50},${yf - 5} L${x + 58},${yf} L${x + 50},${yf + 5} Z`);
-      fch.tx.setAttribute("x", x + 6); fch.tx.setAttribute("y", yf + 16);
-      fch.tx.textContent = `V = ${(mod.Fh.top_i / 1000).toFixed(2)} t`;
+      fch.tx.setAttribute("x", x + 2); fch.tx.setAttribute("y", yf - 7);
+      fch.tx.textContent = `V = ${n2(mod.Fh.top_i / 1000)} t`;
     });
     // deriva
     const nT = NOM["top_i"], uT = disp[nT].u;
@@ -251,8 +264,13 @@
       la.setAttribute("x2", Math.max(x0, xd) + 6); la.setAttribute("y2", yD);
       t1.setAttribute("d", `M${Math.min(x0, xd) - 6 + 8},${yD - 5} L${Math.min(x0, xd) - 6},${yD} L${Math.min(x0, xd) - 6 + 8},${yD + 5} Z`);
       t2.setAttribute("d", `M${Math.max(x0, xd) + 6 - 8},${yD - 5} L${Math.max(x0, xd) + 6},${yD} L${Math.max(x0, xd) + 6 - 8},${yD + 5} Z`);
-      const real = Math.abs(RES.casos[caso].nodos[nT].u);
-      deriva.tx.textContent = `Δ = ${real.toFixed(2)} cm`;
+      const rr = RES.casos[caso], espM = (window.MODAL || {}).espectro;
+      deriva.tx.textContent = rr.sismico
+        ? (est.osc && espM && espM[rr.R]
+            ? `oscilación del modo T₁ = ${n2(T1, 3)} s · amplitud Δ = ${n2(espM[rr.R].delta_inel)} cm`
+              + (est.cd ? " (Cd·δ)" : " (δ elástica)")
+            : `Δ sísmica = ${n2(rr.deriva)} cm · Cd·Δ = ${n2(rr.deriva_amplificada)} cm`)
+        : `aplanamiento del arco = ${n2(rr.deriva)} cm`;
       deriva.tx.setAttribute("x", Math.max(x0, xd) + 12);
       deriva.tx.setAttribute("y", yD + 18);
       deriva.tx.setAttribute("text-anchor", "start");
@@ -272,18 +290,18 @@
         g.gMom.appendChild(el("text", { x: x1 + s * 14, y: y1 + (y2 > y1 ? -8 : 8), fill: "#fbbf24",
                                         "font-size": 11, "font-family": "monospace",
                                         "text-anchor": s > 0 ? "start" : "end" },
-          `M = ${(m1 / 1000).toFixed(2)} t·m`));
+          `M = ${n2(m1 / 1000)} t·m`));
       });
     }
     // caja de datos
     cajaTxt[0].textContent = "CASO: " + ETIQ[caso];
-    cajaTxt[1].textContent = `q techo  = ${mod.q_techo.toFixed(0)} kg/m`;
-    cajaTxt[2].textContent = `q pasarela = ${mod.q_pas.toFixed(0)} kg/m`;
+    cajaTxt[1].textContent = `q techo  = ${n2(mod.q_techo, 0)} kg/m`;
+    cajaTxt[2].textContent = `q pasarela = ${n2(mod.q_pas, 0)} kg/m`;
     cajaTxt[3].textContent = `PP real   = 135 kg/m`;
     cajaTxt[4].textContent = `(planilla = 60 kg/m)`;
-    cajaTxt[5].textContent = `|N| máx   = ${(nmax / 1000).toFixed(2)} t`;
+    cajaTxt[5].textContent = `|N| máx   = ${n2(nmax / 1000)} t`;
     cajaTxt[6].textContent = hayTirante
-      ? `T tirante = ${(axial[String(iTir)] / 1000).toFixed(2)} t` : "tirante   = NO EXISTE";
+      ? `T tirante = ${n2(axial[String(iTir)] / 1000)} t` : "tirante   = NO EXISTE";
     pintarPanel();
   }
 
@@ -298,28 +316,36 @@
       `<b style="color:var(--tx)">${ETIQ[caso]}</b> — ${r.label}`;
     const badge = r.deriva_ok ? `<span class="badge ok">cumple</span>`
                               : `<span class="badge no">NO cumple</span>`;
+    const cuM = REF_R[caso] ? n2(ref.M_base_cantil[REF_R[caso]] / 1000) + " t·m" : "—";
+    const pct = (x) => n2(x * 100) + " %";
     const kpi = (lab, val, sub, cls) =>
       `<div class="kpi ${cls || ""}"><div class="lab">${lab}</div><div class="val">${val}</div>
        <div class="sub">${sub || ""}</div></div>`;
-    const cuM = REF_R[caso] ? (ref.M_base_cantil[REF_R[caso]] / 1000).toFixed(2) + " t·m" : "—";
     document.getElementById("kpis").innerHTML =
       kpi("Tirante de cabeza",
-          r.tirante_N ? (r.tirante_N / 1000).toFixed(2) + " t" : "sin tirante",
-          `D/C ${d.tirante.toFixed(3)} · cuaderno ${(ref.tirante_T_u / 1000).toFixed(2)} t (D/C ${ref.tirante_dc.toFixed(3)})`) +
-      kpi("Empuje H en el pilar", (r.V_base / 1000).toFixed(2) + " t",
-          `D/C pilar ${d.pilar.toFixed(3)}`) +
-      kpi("M en la base del pilar", (r.M_base / 1000).toFixed(2) + " t·m",
-          `cuaderno: ${cuM}`) +
-      kpi("Deriva Δ en la cabeza", r.deriva.toFixed(2) + " cm",
-          `Cd·Δ = ${r.deriva_amplificada.toFixed(2)} cm ≤ ${lim} cm`) +
-      kpi("Axial en el pilar", (r.N_pilar / 1000).toFixed(2) + " t",
-          `2 pilares = ${(2 * r.N_pilar / 1000).toFixed(1)} t`) +
-      kpi("q total del pórtico", (r.q_total + r.peso_propio / 17.6).toFixed(0) + " kg/m",
-          `PP real ${(r.peso_propio / 17.6).toFixed(0)} kg/m`) +
-      `<div class="kpi ancho"><div class="lab">Semáforo de deriva (COVENIN 1756‑1:2019 §9.4)</div>
-        <div class="val">${badge} <span class="sub">Cd·Δ = ${r.deriva_amplificada.toFixed(2)} cm
-        contra ${lim} cm</span></div></div>`;
-    const cu = (v) => v == null ? "—" : v.toFixed(3);
+          r.tirante_N ? n2(r.tirante_N / 1000) + " t" : "sin tirante",
+          `D/C ${n2(d.tirante, 3)} · cuaderno ${n2(ref.tirante_T_u / 1000)} t (D/C ${n2(ref.tirante_dc, 3)})`) +
+      kpi("Empuje en el arranque", n2(r.H_arco / 1000) + " t",
+          r.tirante_N ? "lo toma el tirante de cabeza" : "lo toman los dos pilares") +
+      kpi("M en la base del pilar", n2(r.M_base / 1000) + " t·m",
+          `pilar ${r.V_col.gobierna} · cuaderno ${cuM}`) +
+      kpi(r.sismico ? "Deriva Δ en la cabeza" : "Aplanamiento del arco",
+          n2(r.deriva) + " cm",
+          r.sismico ? `Cd·Δ = ${n2(r.deriva_amplificada)} cm ≤ ${lim} cm`
+                    : `las cabezas se separan ${n2(2 * r.deriva)} cm`) +
+      kpi("Corte en los pilares", n2(Math.abs(r.V_base_total) / 1000) + " t",
+          `izq ${n2(r.V_col.izquierdo.V / 1000)} t · der ${n2(r.V_col.derecho.V / 1000)} t`) +
+      kpi("Axial en el pilar", n2(r.N_pilar / 1000) + " t",
+          `2 pilares = ${n2(2 * r.N_pilar / 1000, 1)} t`) +
+      kpi("q del pórtico (con PP real)", n2(r.q_total + r.peso_propio / 17.6, 0) + " kg/m",
+          `PP real ${n2(r.peso_propio / 17.6, 0)} kg/m vs 60 de planilla`) +
+      `<div class="kpi ancho"><div class="lab">Deriva amplificada (COVENIN 1756‑1:2019 §9.4)</div>
+        <div class="val">${r.sismico
+          ? (r.deriva_ok ? `<span class="badge ok">cumple</span>` : `<span class="badge no">NO cumple</span>`)
+            + ` <span class="sub">Cd·Δ = ${n2(r.deriva_amplificada)} cm contra ${lim} cm</span>`
+          : `<span class="badge ok">no aplica</span> <span class="sub">este caso no tiene sismo</span>`}
+        </div></div>`;
+    const cu = (v) => v == null ? "—" : n2(v, 3);
     const filas = [
       ["Cordón 2×IPE 160", d.cordon, ref.dc_cordon],
       ["Diagonal IPE 160", d.diagonal, ref.dc_diagonal],
@@ -331,13 +357,24 @@
     ];
     document.querySelector("#tablaDC tbody").innerHTML = filas.map(([nom, a, b]) =>
       `<tr><td>${nom}${barraDC(a)}</td><td class="n" style="color:${a < 1 ? "#34d399" : "#f87171"}">
-        ${a.toFixed(3)}</td><td class="n" style="color:var(--tx3)">${cu(b)}</td></tr>`).join("");
+        ${n2(a, 3)}</td><td class="n" style="color:var(--tx3)">${cu(b)}</td></tr>`).join("");
     const notas = {
-      servicio: "Combinación de servicio (sin mayorar): sirve para flechas, asentamientos y peso sísmico. El tirante toma 8,48 t.",
-      mayorada: "Combinación de rotura 1,2D + 1,6L. El tirante toma 12,18 t (D/C 0,47 frente a 0,546 del cuaderno): cordones y diagonales van holgados.",
-      sismo_R6: "R = 6 (planilla original, pórticos ND3). La deriva amplificada 7,48 cm queda por debajo del límite de 17 cm.",
-      sismo_R2: "R = 2 — hipótesis adoptada por el proyecto (Tipo IV, §3.5.4). La deriva amplificada 24,53 cm supera los 17 cm: <b>NO CUMPLE</b>. Es la misma bandera roja del cuaderno.",
-      sin_tirante: "Sin tirante la cercha pierde la acción de arco y trabaja como viga curva: el cordón superior llega a −45,1 t (D/C 1,11 ✗). El pilar sólo recibe 0,36 t porque el arco se abre. Ver AUDITORIA.md §5.3.",
+      servicio: "Combinación de servicio D + L. El tirante toma 8,48 t y, al hacerlo, el arco se " +
+        "aplana y separa las cabezas de los pilares ±0,31 cm (0,62 cm entre ambas). Peso sísmico: " +
+        "10,81 t por pórtico con el peso propio real.",
+      mayorada: "Combinación de rotura 1,2D + 1,6L. El tirante toma 12,18 t (D/C 0,47 contra 0,546 " +
+        "del cuaderno): cordones, diagonales y montantes van holgados.",
+      sismo_R6: "R = 6 (planilla original, pórticos ND3). Deriva sísmica 2,006 cm y amplificada " +
+        "Cd·Δ = 8,52 cm ≤ 17 cm ✓. El modelo reproduce la fórmula de la ménsula del cuaderno a " +
+        "4 cifras; el momento de la base gobernante (4,94 t·m) queda 12 % arriba por el reparto " +
+        "desigual del corte entre los dos pilares.",
+      sismo_R2: "R = 2 — hipótesis adoptada por el proyecto (Tipo IV, §3.5.4). Deriva amplificada " +
+        "Cd·Δ = 25,57 cm contra 17 cm: <b>NO CUMPLE</b>. Es la misma bandera roja del cuaderno, y " +
+        "el análisis dinámico la confirma (Δ = 29,76 cm con las masas reales).",
+      sin_tirante: "Sin tirante el arco se aplana libremente: sólo 0,36 t de empuje llegan al " +
+        "arranque, pero la cercha pierde la acción de arco y trabaja como viga curva: el cordón " +
+        "superior llega a −45,1 t (<b>D/C 1,11 ✗</b>). La tarjeta «Escenario sin tirante» compara " +
+        "esta hipótesis con la del cuaderno (H = 14,17 t, D/C del pilar 3,18 ✗).",
     };
     document.getElementById("notas").innerHTML =
       `<div class="nota ${caso === "sismo_R2" || caso === "sin_tirante" ? "alerta" : ""}">${notas[caso]}</div>`;
@@ -390,6 +427,8 @@
   document.getElementById("ckCargas").onchange = (e) => { est.cargas = e.target.checked; render(); };
   document.getElementById("ckAxial").onchange = (e) => { est.axial = e.target.checked; render(); };
   document.getElementById("ckMom").onchange = (e) => { est.mom = e.target.checked; render(); };
+  document.getElementById("ckCd").onchange = (e) => { est.cd = e.target.checked; render(); };
+  document.getElementById("vel").onchange = (e) => { est.vel = +e.target.value; render(); };
   render();
   animar();
 })();
