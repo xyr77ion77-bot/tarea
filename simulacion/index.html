@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulación 2D — pórtico del auditorio (17,60 m)</title>
+<style>
+  :root{
+    --bg:#0a0f1a; --panel:#111a2b; --panel2:#16213a; --line:#25344f;
+    --tx:#e6eefc; --tx2:#9fb3d1; --tx3:#6b81a3;
+    --rojo:#ef4444; --azul:#38bdf8; --ambar:#fbbf24; --verde:#34d399;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+       font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.5}
+  header{padding:18px 22px 10px;border-bottom:1px solid var(--line)}
+  header h1{margin:0;font-size:19px;letter-spacing:.2px}
+  header p{margin:4px 0 0;color:var(--tx2);font-size:13px}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;padding:16px 22px 0;
+        align-items:start}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 22px 0;align-items:start}
+  .grid2b{display:grid;grid-template-columns:1fr 1.15fr;gap:16px;padding:16px 22px 0;align-items:start}
+  .full{padding:16px 22px 0}
+  @media (max-width:1080px){.grid,.grid2,.grid2b{grid-template-columns:minmax(0,1fr)}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--tx2);border-radius:999px;
+        padding:6px 13px;font-size:12.5px;cursor:pointer;transition:.15s}
+  .chip:hover{border-color:#3b5480;color:var(--tx)}
+  .chip.on{background:#1c2b4a;border-color:#3f6ee0;color:#fff;box-shadow:0 0 0 1px #3f6ee0 inset}
+  svg{width:100%;height:auto;display:block;background:linear-gradient(180deg,#0c1322,#0a0f1a);
+      border-radius:10px;border:1px solid var(--line)}
+  .barra{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:10px}
+  button{background:var(--panel2);border:1px solid var(--line);color:var(--tx);border-radius:9px;
+         padding:7px 14px;font-size:13px;cursor:pointer;transition:.15s}
+  button:hover{border-color:#3b5480}
+  button.pri{background:#1d4ed8;border-color:#3b82f6}
+  button.pri:hover{background:#2563eb}
+  label.ck{display:flex;gap:6px;align-items:center;color:var(--tx2);font-size:12.5px;cursor:pointer}
+  select{background:var(--panel2);border:1px solid var(--line);color:var(--tx);border-radius:8px;
+         padding:6px 8px;font-size:12.5px}
+  input[type=range]{width:120px;accent-color:#3b82f6}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+  .kpi .lab{color:var(--tx3);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+  .kpi .val{font-family:var(--mono);font-size:17px;margin-top:3px}
+  .kpi .sub{color:var(--tx2);font-size:11.5px;font-family:var(--mono)}
+  .kpi.ancho{grid-column:1/-1}
+  .badge{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11.5px;font-family:var(--mono)}
+  .ok{background:rgba(52,211,153,.15);color:var(--verde);border:1px solid rgba(52,211,153,.35)}
+  .no{background:rgba(239,68,68,.15);color:var(--rojo);border:1px solid rgba(239,68,68,.4)}
+  h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3)}
+  h3 span{text-transform:none;letter-spacing:0;color:var(--tx2);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--tx3);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  td.n{font-family:var(--mono)}
+  .dc{height:7px;border-radius:4px;background:#1b2942;overflow:hidden;margin-top:3px}
+  .dc i{display:block;height:100%}
+  .nota{color:var(--tx2);font-size:12.5px;background:rgba(56,189,248,.07);border-left:3px solid #38bdf8;
+        padding:8px 10px;border-radius:0 8px 8px 0;margin-top:10px}
+  .nota.alerta{background:rgba(239,68,68,.08);border-left-color:var(--rojo)}
+  .nota.ok{background:rgba(52,211,153,.08);border-left-color:var(--verde)}
+  .leyenda{display:flex;gap:16px;flex-wrap:wrap;align-items:center;color:var(--tx2);font-size:12px;
+           margin-top:9px}
+  .leyenda b{font-weight:500;color:var(--tx)}
+  .sw{display:inline-block;width:22px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+  footer{padding:16px 22px 30px;color:var(--tx3);font-size:12px}
+  code{font-family:var(--mono);color:var(--tx2)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Simulación 2D · pórtico transversal del auditorio — nivel A + B</h1>
+  <p>Auditorio UPT Barlovento «Argelia Laya» · Higuerote — 7 pórticos de 17,60 m de luz, 8,50 m de altura.
+     Modelo de barras resuelto por rigidez directa (<code>solver2d.py</code>) y análisis dinámico
+     (<code>dinamica.py</code>) con el espectro COVENIN 1756‑1:2019 §7. Datos del cuaderno de cálculo.</p>
+</header>
+
+<!-- ============================ NIVEL A: escena principal ============================ -->
+<div class="grid">
+  <section class="card">
+    <div class="chips" id="chips"></div>
+    <svg id="lienzo" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="barra">
+      <button class="pri" id="btnPlay">▶ Aplicar cargas</button>
+      <button id="btnReset">↺ Reposo</button>
+      <button id="btnOsc" style="display:none">⇄ Oscilar sismo</button>
+      <span style="color:var(--tx2);font-size:12.5px">Deformada ×<b id="escLab" style="font-family:var(--mono)">20</b></span>
+      <input type="range" id="escala" min="1" max="40" value="20">
+      <label class="ck">velocidad
+        <select id="vel">
+          <option value="1">tiempo real</option>
+          <option value="0.25" selected>cámara lenta ×1/4</option>
+          <option value="0.1">cámara lenta ×1/10</option>
+        </select>
+      </label>
+      <label class="ck"><input type="checkbox" id="ckCargas" checked> cargas</label>
+      <label class="ck"><input type="checkbox" id="ckAxial" checked> axiales</label>
+      <label class="ck"><input type="checkbox" id="ckMom"> momentos en pilares</label>
+      <label class="ck" title="La oscilación del nivel B usa la amplitud de diseño Δ = Cd·δ">
+        <input type="checkbox" id="ckCd" checked> amplitud de diseño ×Cd</label>
+    </div>
+    <div class="leyenda">
+      <span><span class="sw" style="background:hsl(2,85%,52%)"></span><b>compresión</b></span>
+      <span><span class="sw" style="background:hsl(199,85%,52%)"></span><b>tracción</b></span>
+      <span><span class="sw" style="background:#fbbf24"></span><b>tirante de cabeza</b></span>
+      <span>grosor de línea ∝ |N|</span>
+      <span style="color:var(--tx3)">· deformada amplificada ×<span id="escLab2">20</span> (el movimiento real es del orden de centímetros)</span>
+    </div>
+  </section>
+
+  <aside class="card">
+    <div id="tituloCaso" style="font-size:13px;color:var(--tx2);margin-bottom:10px"></div>
+    <div class="kpis" id="kpis"></div>
+    <h3>D/C — modelo 2D vs cuaderno</h3>
+    <table id="tablaDC">
+      <thead><tr><th>Elemento</th><th>Modelo</th><th>Cuaderno</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div id="notas"></div>
+  </aside>
+</div>
+
+<!-- ============================ NIVEL B: R = 6 vs R = 2 ============================ -->
+<div class="grid2">
+  <section class="card">
+    <h3>Sismo R = 6 <span>· planilla original (ND3)</span></h3>
+    <svg id="lienzoR6" viewBox="0 0 520 430" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="kpis" id="kpiR6"></div>
+  </section>
+  <section class="card">
+    <h3>Sismo R = 2 <span>· Tipo IV, §3.5.4 (hipótesis del proyecto)</span></h3>
+    <svg id="lienzoR2" viewBox="0 0 520 430" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="kpis" id="kpiR2"></div>
+  </section>
+</div>
+<div class="full" id="notaComparacion"></div>
+
+<!-- ============================ NIVEL B: modo y espectro ============================ -->
+<div class="grid2b">
+  <section class="card">
+    <h3>Modo fundamental <span>· masas sísmicas reales</span></h3>
+    <svg id="lienzoModo" viewBox="0 0 520 420" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="txtModo"></div>
+  </section>
+  <section class="card">
+    <h3>Espectro de diseño <span>· COVENIN 1756‑1:2019 §7 (forma adoptada por el cuaderno)</span></h3>
+    <svg id="lienzoEspectro" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="txtEspectro"></div>
+  </section>
+</div>
+
+<!-- ============================ NIVEL B: estático vs dinámico ============================ -->
+<div class="full">
+  <section class="card">
+    <h3>Estático (cuaderno) contra dinámico (nivel B) <span>· un pórtico de los 7</span></h3>
+    <table id="tablaDin">
+      <thead><tr><th>Magnitud</th><th>Cuaderno (estático)</th><th>Modelo 2D (estático)</th>
+        <th>Dinámico (T₁, modo 1)</th><th>Lectura</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div id="notasDin"></div>
+  </section>
+</div>
+
+<!-- ============================ Sin tirante: dos hipótesis ============================ -->
+<div class="full">
+  <section class="card" id="cardSin">
+    <h3>Escenario sin tirante <span>· las dos hipótesis de empuje, juntas</span></h3>
+    <table id="tablaSin">
+      <thead><tr><th>Hipótesis</th><th>Empuje H</th><th>M base del pilar</th><th>Demanda</th>
+        <th>D/C</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div id="notasSin"></div>
+  </section>
+</div>
+
+<!-- ============================ NIVEL Y: dirección longitudinal ============================ -->
+<div class="full">
+  <section class="card">
+    <h3>Nivel Y · sismo longitudinal <span>· elevación de una fachada arriostrada (24,60 m)</span></h3>
+    <p style="color:var(--tx2);font-size:12.5px;margin:0 0 10px">
+      Los 7 pilares HEB 300 (sobre su <b>eje débil</b>) separados 4,10 m, con <b>cruces de San Andrés
+      HEB 200 en los 6 vanos</b> y la correa IPN 140 como colector. Se modela <b>una de las dos fachadas</b>
+      (mitad del cortante y de la masa, sin torsión). Decisiones del usuario: los 6 vanos arriostrados,
+      <b>R = 4,5 contra R = 2</b> comparados y el diafragma en <b>dos hipótesis</b>. Todo sale de
+      <code>modelo_y.py</code> + <code>eje_y.py</code> con el mismo solver verificado.
+    </p>
+    <div class="chips" id="chipsDia" style="margin-bottom:0">
+      <button class="chip" data-d="rigido">Diafragma rígido</button>
+      <button class="chip" data-d="flexible">Diafragma flexible (colector IPN 140)</button>
+    </div>
+    <div class="barra">
+      <button id="btnPausaY">⏸ Pausar</button>
+      <span style="color:var(--tx2);font-size:12.5px">Deformada ×<b id="ampLabY" style="font-family:var(--mono)">—</b>
+        (el movimiento real es de milímetros)</span>
+      <label class="ck">velocidad
+        <select id="velY">
+          <option value="0.01">cámara lenta ×1/100</option>
+          <option value="0.004" selected>cámara muy lenta ×1/250</option>
+          <option value="0.001">cámara muy lenta ×1/1000</option>
+        </select>
+      </label>
+      <span style="color:var(--tx2);font-size:12.5px">El período real es T₁ ≈ 0,07 s: sin cámara lenta no se vería.</span>
+    </div>
+    <div class="leyenda">
+      <span><span class="sw" style="background:#e6eefc"></span><b>pilares HEB 300 (eje débil)</b></span>
+      <span><span class="sw" style="background:#38bdf8"></span><b>colector IPN 140</b></span>
+      <span><span class="sw" style="background:hsl(199,85%,55%)"></span><b>diagonal en tracción</b></span>
+      <span><span class="sw" style="background:hsl(2,85%,55%)"></span><b>diagonal en compresión</b></span>
+      <span>flechas rosadas: fuerzas inerciales Γ·m·φ en las cabezas</span>
+    </div>
+  </section>
+</div>
+
+<div class="full">
+  <section class="card">
+    <h3>Sismo longitudinal R = 4,5 <span>· Tabla 15, arriostramiento concéntrico (Tipo III-b)</span></h3>
+    <svg id="lienzoYR45" viewBox="0 0 1000 330" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="kpis" id="kpiYR45" style="grid-template-columns:1fr 1fr 1fr 1fr"></div>
+  </section>
+</div>
+<div class="full">
+  <section class="card">
+    <h3>Sismo longitudinal R = 2 <span>· conservador, igual que el transversal (decisión del proyecto)</span></h3>
+    <svg id="lienzoYR2" viewBox="0 0 1000 330" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="kpis" id="kpiYR2" style="grid-template-columns:1fr 1fr 1fr 1fr"></div>
+  </section>
+</div>
+
+<div class="full">
+  <section class="card">
+    <h3>Eje Y: diafragma rígido contra flexible <span>· una fachada, Cd = 3,75 (Tabla 15)</span></h3>
+    <table id="tablaY">
+      <thead><tr><th>Magnitud</th><th>Rígido · R = 4,5</th><th>Rígido · R = 2</th>
+        <th>Flexible · R = 4,5</th><th>Flexible · R = 2</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div id="notasY"></div>
+  </section>
+</div>
+
+<footer>
+  Fuente de datos: <code>../cuaderno/calculos.py</code> → <code>modelo.py</code> → <code>solver2d.py</code>
+  → <code>datos.js</code>, más <code>dinamica.py</code> → <code>datos2.js</code>.
+  Hipótesis y limitaciones en <code>AUDITORIA.md</code>.
+  El solver se verificó contra 4 fórmulas cerradas (error 0,00 %) y contra la analogía de resortes del
+  empuje (coincidencia de 6 cifras). El análisis dinámico usa la masa sísmica real (D + 0,5L + pasarela +
+  peso propio = 10,81 t por pórtico) y resuelve el autovalor fundamental por Jacobi con los giros
+  condensados estáticamente.
+</footer>
+
+<script src="datos.js"></script>
+<script src="datos2.js"></script>
+<script src="app.js"></script>
+<script src="app_din.js"></script>
+</body>
+</html>

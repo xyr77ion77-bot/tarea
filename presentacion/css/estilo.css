@@ -1,0 +1,646 @@
+/* =====================================================================
+   LOS JUEGOS DEL SACRIFICIO — tema holográfico rojo
+   Estilo: diagrama de Tengen (Jujutsu Kaisen) — fondo negro, retícula
+   roja, banners hexagonales de borde doble, líneas con glow.
+   ===================================================================== */
+
+:root {
+  --rojo: #d31126;
+  --rojo-vivo: #ff203e;
+  --rojo-tenue: rgba(255, 32, 62, 0.55);
+  --fondo: #050508;
+  --panel: #0b0b11;
+  --hueso: #eceae6;
+  --glow-rojo: drop-shadow(0 0 6px rgba(255, 32, 62, 0.9));
+  --glow-blanco: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--fondo);
+  color: #fff;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* reveal pinta el viewport de blanco: debe quedar transparente para que
+   se vea el fondo holográfico */
+.reveal-viewport,
+.reveal-viewport .state-background,
+.reveal .state-background,
+.reveal .slides { background: transparent !important; }
+
+/* ---------------------------------------------------------------------
+   Fondo fijo: retícula roja + viñeta + líneas diagonales (holograma)
+   --------------------------------------------------------------------- */
+.fondo {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(160, 12, 30, 0.20), transparent 70%),
+    repeating-linear-gradient(0deg,  transparent 0 47px, rgba(255, 30, 50, 0.055) 47px 48px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(255, 30, 50, 0.055) 47px 48px),
+    var(--fondo);
+}
+.fondo::before {
+  /* dos líneas diagonales blancas tipo "holograma" */
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background:
+    linear-gradient(115deg, transparent 49.85%, rgba(255,255,255,0.10) 49.9%, rgba(255,255,255,0.10) 50%, transparent 50.05%),
+    linear-gradient(65deg,  transparent 49.9%,  rgba(255,255,255,0.06) 49.95%, rgba(255,255,255,0.06) 50%, transparent 50.05%);
+}
+.fondo::after {
+  /* viñeta */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.75) 100%);
+}
+
+/* partículas flotantes */
+.particula {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: var(--rojo-vivo);
+  box-shadow: 0 0 8px var(--rojo-vivo);
+  z-index: -1;
+  opacity: 0.5;
+  animation: flotar 9s ease-in-out infinite alternate;
+}
+@keyframes flotar {
+  from { transform: translateY(0)    scale(1);   opacity: 0.25; }
+  to   { transform: translateY(-40px) scale(1.4); opacity: 0.7; }
+}
+
+/* ---------------------------------------------------------------------
+   Marco del "reproductor" (homenaje al video):
+   pestañas arriba, barra de progreso y contador abajo
+   --------------------------------------------------------------------- */
+.tabs {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 40;
+}
+.tab {
+  min-width: 52px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  background: #101018;
+  color: #c9c9d2;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+.tab span { display: none; }
+.tab:hover { border-color: var(--rojo); color: #fff; }
+.tab.activa {
+  background: linear-gradient(180deg, var(--rojo-vivo), var(--rojo));
+  border-color: var(--rojo-vivo);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(255, 32, 62, 0.55);
+}
+.tab.activa span { display: inline; }
+
+.barra-inferior {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 0 18px 10px;
+}
+.progreso-pista {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progreso-relleno {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--rojo), var(--rojo-vivo));
+  box-shadow: 0 0 10px var(--rojo-vivo);
+  border-radius: 3px;
+  transition: width 0.35s ease;
+}
+.barra-datos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 7px;
+  font-size: 14px;
+  color: #d8d8de;
+  letter-spacing: 1px;
+}
+.contador { font-variant-numeric: tabular-nums; }
+.pantalla-completa {
+  background: none;
+  border: none;
+  color: #d8d8de;
+  font-size: 19px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.pantalla-completa:hover { color: var(--rojo-vivo); }
+
+/* ---------------------------------------------------------------------
+   Subtítulo fijo estilo anime (fuente blanca con borde negro)
+   --------------------------------------------------------------------- */
+.subtitulo {
+  position: fixed;
+  left: 50%;
+  bottom: 54px;
+  transform: translateX(-50%);
+  width: min(1000px, 88vw);
+  text-align: center;
+  z-index: 35;
+  font-size: clamp(18px, 2.4vh, 25px);
+  font-weight: 800;
+  line-height: 1.35;
+  color: #fff;
+  text-shadow:
+    -2px -2px 0 #000,  2px -2px 0 #000,
+    -2px  2px 0 #000,  2px  2px 0 #000,
+     0    3px 6px rgba(0,0,0,0.9);
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.subtitulo.vacio { opacity: 0; }
+
+/* ---------------------------------------------------------------------
+   Reveal — ajustes base
+   --------------------------------------------------------------------- */
+.reveal { font-size: 32px; }
+.reveal .slides { text-align: center; }
+.reveal .slides section {
+  padding: 70px 60px 90px;
+  height: 100%;
+}
+.reveal h1, .reveal h2, .reveal h3 {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 32, 62, 0.5);
+  margin: 0;
+}
+.reveal p { margin: 0.4em 0; }
+.reveal strong { color: var(--rojo-vivo); font-weight: 800; }
+.reveal ul { list-style: none; margin: 0; padding: 0; text-align: left; }
+
+/* kanji decorativo de fondo */
+.kanji-fondo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(240px, 45vh, 420px);
+  font-weight: 900;
+  color: rgba(255, 32, 62, 0.07);
+  pointer-events: none;
+  z-index: -1;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  white-space: nowrap;
+}
+.kanji-lateral {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  font-size: 22px;
+  letter-spacing: 14px;
+  color: rgba(255, 255, 255, 0.28);
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+}
+.kanji-lateral.izq { left: 26px; }
+.kanji-lateral.der { right: 26px; }
+
+/* ---------------------------------------------------------------------
+   Banner hexagonal (ribbon) de borde doble — componente principal
+   --------------------------------------------------------------------- */
+.banner {
+  display: inline-block;
+  background: var(--rojo);          /* línea exterior */
+  clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  padding: 3px;
+  filter: var(--glow-rojo);
+}
+.banner .n1 {
+  background: #12060a;             /* hueco exterior */
+  clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  padding: 3px;
+}
+.banner .n2 {
+  background: var(--rojo);          /* línea interior */
+  clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  padding: 3px;
+}
+.banner .txt {
+  background: #08080c;             /* relleno */
+  clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  padding: 0.55em 2.4em;
+  font-family: "Arial Narrow", "Franklin Gothic Medium", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-weight: 700;
+  font-size: 0.72em;
+  line-height: 1.15;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+}
+.banner .kanji {
+  display: block;
+  font-size: 0.5em;
+  letter-spacing: 8px;
+  color: var(--rojo-vivo);
+  text-shadow: 0 0 8px var(--rojo-tenue);
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+}
+.banner.grande .txt { font-size: 0.9em; padding: 0.7em 2.6em; }
+.banner.titular .txt { font-size: 1.05em; padding: 0.8em 2.8em; letter-spacing: 6px; }
+
+/* ---------------------------------------------------------------------
+   1 · PORTADA
+   --------------------------------------------------------------------- */
+.portada { position: relative; }
+.portada .titulo { position: relative; z-index: 2; margin-top: 6vh; }
+.portada .sub {
+  margin-top: 2.2em;
+  font-size: 0.62em;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #d9d9e0;
+}
+.portada .datos {
+  margin-top: 9vh;
+  font-size: 0.42em;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+}
+.pulso {
+  width: 12px; height: 12px;
+  display: inline-block;
+  margin-right: 10px;
+  background: var(--rojo-vivo);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--rojo-vivo);
+  animation: latido 1.6s ease-in-out infinite;
+  vertical-align: middle;
+}
+@keyframes latido {
+  0%, 100% { transform: scale(1);   opacity: 1;   }
+  50%      { transform: scale(1.5); opacity: 0.5; }
+}
+
+/* ---------------------------------------------------------------------
+   2 · TENGEN
+   --------------------------------------------------------------------- */
+.tengen-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 40px;
+  align-items: center;
+  height: 100%;
+  text-align: left;
+}
+.figura { width: 100%; max-width: 380px; margin: 0 auto; display: block; }
+.tengen-datos .banner { margin-bottom: 26px; }
+.tengen-datos ul { font-size: 0.58em; line-height: 1.7; }
+.tengen-datos li {
+  padding: 0.55em 0 0.55em 1.6em;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 32, 62, 0.25);
+  color: #e4e4ea;
+}
+.tengen-datos li::before {
+  content: "◆";
+  position: absolute;
+  left: 0;
+  color: var(--rojo-vivo);
+  text-shadow: 0 0 6px var(--rojo-tenue);
+  font-size: 0.7em;
+  top: 0.85em;
+}
+
+/* ---------------------------------------------------------------------
+   3 · DIAGRAMA
+   --------------------------------------------------------------------- */
+section.diagrama-slide {
+  padding-top: 76px;
+  padding-bottom: 40px;
+}
+.diagrama {
+  position: relative;
+  width: 1160px;
+  height: 560px;
+  margin: 0 auto;
+}
+.diagrama svg.cableado {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.diagrama svg.cableado line {
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1.6;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
+}
+.diagrama svg.cableado line.fantasma {
+  stroke: rgba(255, 60, 80, 0.35);
+  stroke-width: 1;
+  filter: none;
+}
+.nodo { position: absolute; z-index: 3; }
+.nodo.arriba    { top: 4px;    left: 50%; transform: translateX(-50%); }
+.nodo.izquierda { top: 240px;  left: 8px; }
+.nodo.derecha   { top: 240px;  right: 8px; }
+.nodo.centro    { top: 305px;  left: 50%; transform: translateX(-50%); z-index: 5; }
+.nodo.abajo     { top: 470px;  left: 50%; transform: translateX(-50%); }
+
+.esfera {
+  position: absolute;
+  top: 270px;
+  left: 580px;
+  width: 130px;
+  height: 130px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  z-index: 2;
+  background:
+    radial-gradient(circle at 35% 30%, #ff9aa8 0%, #ff203e 32%, #a30d20 62%, #3e040e 100%);
+  box-shadow:
+    0 0 34px 8px rgba(255, 32, 62, 0.55),
+    0 0 90px 30px rgba(255, 32, 62, 0.25),
+    inset 0 -10px 26px rgba(0, 0, 0, 0.65);
+  animation: latido 2.6s ease-in-out infinite;
+}
+.esfera::after {
+  content: "";
+  position: absolute;
+  inset: -26px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 32, 62, 0.5);
+}
+.diagrama .subrayado {
+  position: absolute;
+  bottom: -6px;
+  left: 0; right: 0;
+  font-size: 15px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ---------------------------------------------------------------------
+   4 · REGLAS
+   --------------------------------------------------------------------- */
+.reglas { display: flex; gap: 26px; justify-content: center; align-items: stretch; }
+.regla {
+  flex: 1;
+  max-width: 340px;
+  background: linear-gradient(180deg, rgba(20, 12, 16, 0.92), rgba(8, 8, 12, 0.92));
+  border: 1px solid rgba(255, 32, 62, 0.55);
+  border-top: 3px solid var(--rojo-vivo);
+  padding: 26px 22px 22px;
+  text-align: left;
+  position: relative;
+  box-shadow: 0 0 18px rgba(255, 32, 62, 0.18), inset 0 0 24px rgba(255, 32, 62, 0.06);
+}
+.regla .num {
+  position: absolute;
+  top: -22px;
+  left: 18px;
+}
+.regla h3 {
+  font-size: 0.62em;
+  letter-spacing: 4px;
+  margin: 12px 0 10px;
+  color: var(--rojo-vivo);
+  text-shadow: 0 0 10px var(--rojo-tenue);
+}
+.regla p { font-size: 0.52em; line-height: 1.65; color: #dedee5; }
+.reglas-titulo { margin-bottom: 46px; }
+
+/* ---------------------------------------------------------------------
+   5 · CITA
+   --------------------------------------------------------------------- */
+.cita {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+.cita .comillas {
+  font-size: 3em;
+  color: var(--rojo-vivo);
+  line-height: 0.4;
+  text-shadow: 0 0 20px var(--rojo-tenue);
+  font-family: Georgia, serif;
+}
+.cita blockquote {
+  margin: 0.4em auto;
+  max-width: 900px;
+  font-size: 0.95em;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(255, 32, 62, 0.35);
+}
+.cita cite {
+  font-style: normal;
+  font-size: 0.5em;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--rojo-vivo);
+}
+
+/* ---------------------------------------------------------------------
+   6 · CRONOGRAMA
+   --------------------------------------------------------------------- */
+.crono-cita {
+  font-size: 0.62em;
+  color: #d9d9e0;
+  margin-bottom: 60px;
+  letter-spacing: 1px;
+}
+.crono {
+  position: relative;
+  width: 960px;
+  margin: 0 auto;
+  height: 240px;
+}
+.crono::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--rojo-vivo) 12%, var(--rojo-vivo) 88%, transparent);
+  box-shadow: 0 0 12px var(--rojo-vivo);
+}
+.hito { position: absolute; top: 50%; transform: translate(-50%, -50%); text-align: center; width: 260px; }
+.hito .punto {
+  width: 18px; height: 18px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: var(--rojo-vivo);
+  box-shadow: 0 0 16px var(--rojo-vivo), 0 0 40px rgba(255, 32, 62, 0.5);
+  position: relative;
+}
+.hito .punto::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+.hito .etiqueta {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+}
+.hito .etiqueta.arriba-txt { bottom: 34px; }
+.hito .etiqueta.abajo-txt  { top: 34px; }
+.hito h3 { font-size: 0.55em; color: #fff; letter-spacing: 4px; margin-bottom: 6px; }
+.hito p  { font-size: 0.42em; color: #cfcfd8; line-height: 1.5; }
+.hito:nth-child(1) { left: 8%; }
+.hito:nth-child(2) { left: 50%; }
+.hito:nth-child(3) { left: 92%; }
+
+/* ---------------------------------------------------------------------
+   7 · REVERSO
+   --------------------------------------------------------------------- */
+.reverso-grid {
+  display: flex;
+  gap: 34px;
+  justify-content: center;
+  align-items: stretch;
+  margin-top: 30px;
+}
+.lado {
+  width: 400px;
+  background: rgba(10, 10, 15, 0.9);
+  border: 1px solid rgba(255, 32, 62, 0.5);
+  padding: 30px 28px;
+  text-align: center;
+  box-shadow: inset 0 0 30px rgba(255, 32, 62, 0.07);
+}
+.lado h3 { font-size: 0.6em; color: var(--rojo-vivo); letter-spacing: 5px; margin-bottom: 14px; }
+.lado p  { font-size: 0.5em; line-height: 1.6; color: #e0e0e7; }
+.lado .glifo {
+  font-size: 2em;
+  color: #fff;
+  text-shadow: 0 0 16px rgba(255, 32, 62, 0.8);
+  font-family: "Yu Mincho", serif;
+  margin-bottom: 8px;
+}
+.flecha-media {
+  align-self: center;
+  font-size: 1.4em;
+  color: var(--rojo-vivo);
+  text-shadow: 0 0 16px var(--rojo-tenue);
+  letter-spacing: 6px;
+}
+.reverso-nota {
+  margin-top: 42px;
+  font-size: 0.55em;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #d9d9e0;
+}
+
+/* ---------------------------------------------------------------------
+   8 · CIERRE
+   --------------------------------------------------------------------- */
+.cierre { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative; }
+.orbe {
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  position: relative;
+  background:
+    radial-gradient(circle at 38% 32%, #eaffff 0%, #7fe9ff 18%, #1fa8d8 42%, #0a3d5c 75%, #04121e 100%);
+  box-shadow:
+    0 0 40px 10px rgba(80, 220, 255, 0.45),
+    0 0 120px 40px rgba(80, 220, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: latido 3s ease-in-out infinite;
+}
+.orbe::before {
+  content: "";
+  position: absolute;
+  inset: -34px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 45, 70, 0.85);
+  box-shadow: 0 0 18px rgba(255, 32, 62, 0.6);
+}
+.orbe::after {
+  content: "";
+  position: absolute;
+  inset: -58px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 45, 70, 0.5);
+}
+.orbe span {
+  font-size: 0.72em;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #04121e;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.chevrons {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 90px;
+  transform: translateY(-50%);
+  color: rgba(255, 160, 60, 0.75);
+  font-size: 1.1em;
+  letter-spacing: 10px;
+  pointer-events: none;
+}
+.cierre .banner { margin-top: 54px; }
+.cierre .pregunta {
+  margin-top: 20px;
+  font-size: 0.55em;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #d9d9e0;
+}
+
+/* fragmentos (reveal) */
+.reveal .fragment.glow {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: all 0.4s ease;
+}
+.reveal .fragment.glow.visible {
+  opacity: 1;
+  transform: scale(1);
+}

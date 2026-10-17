@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+frames/
+google_drive/
+
+# Material de terceros y artefactos pesados (se quedan fuera del repo):
+#   _contexto/fuentes/  -> PDF escaneados del libro y export crudo del chat
+#   _analisis/texto/    -> OCR completo del libro (1,4 MB)
+#   _analisis/datos_ocr/-> datos crudos del OCR (1,4 MB)
+#   _analisis/hojas_contacto/ -> hojas de contacto PNG (2,4 MB)
+_contexto/fuentes/
+_analisis/texto/
+_analisis/datos_ocr/
+_analisis/hojas_contacto/
