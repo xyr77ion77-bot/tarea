@@ -179,6 +179,71 @@
   </section>
 </div>
 
+<!-- ============================ NIVEL Y: dirección longitudinal ============================ -->
+<div class="full">
+  <section class="card">
+    <h3>Nivel Y · sismo longitudinal <span>· elevación de una fachada arriostrada (24,60 m)</span></h3>
+    <p style="color:var(--tx2);font-size:12.5px;margin:0 0 10px">
+      Los 7 pilares HEB 300 (sobre su <b>eje débil</b>) separados 4,10 m, con <b>cruces de San Andrés
+      HEB 200 en los 6 vanos</b> y la correa IPN 140 como colector. Se modela <b>una de las dos fachadas</b>
+      (mitad del cortante y de la masa, sin torsión). Decisiones del usuario: los 6 vanos arriostrados,
+      <b>R = 4,5 contra R = 2</b> comparados y el diafragma en <b>dos hipótesis</b>. Todo sale de
+      <code>modelo_y.py</code> + <code>eje_y.py</code> con el mismo solver verificado.
+    </p>
+    <div class="chips" id="chipsDia" style="margin-bottom:0">
+      <button class="chip" data-d="rigido">Diafragma rígido</button>
+      <button class="chip" data-d="flexible">Diafragma flexible (colector IPN 140)</button>
+    </div>
+    <div class="barra">
+      <button id="btnPausaY">⏸ Pausar</button>
+      <span style="color:var(--tx2);font-size:12.5px">Deformada ×<b id="ampLabY" style="font-family:var(--mono)">—</b>
+        (el movimiento real es de milímetros)</span>
+      <label class="ck">velocidad
+        <select id="velY">
+          <option value="0.01">cámara lenta ×1/100</option>
+          <option value="0.004" selected>cámara muy lenta ×1/250</option>
+          <option value="0.001">cámara muy lenta ×1/1000</option>
+        </select>
+      </label>
+      <span style="color:var(--tx2);font-size:12.5px">El período real es T₁ ≈ 0,07 s: sin cámara lenta no se vería.</span>
+    </div>
+    <div class="leyenda">
+      <span><span class="sw" style="background:#e6eefc"></span><b>pilares HEB 300 (eje débil)</b></span>
+      <span><span class="sw" style="background:#38bdf8"></span><b>colector IPN 140</b></span>
+      <span><span class="sw" style="background:hsl(199,85%,55%)"></span><b>diagonal en tracción</b></span>
+      <span><span class="sw" style="background:hsl(2,85%,55%)"></span><b>diagonal en compresión</b></span>
+      <span>flechas rosadas: fuerzas inerciales Γ·m·φ en las cabezas</span>
+    </div>
+  </section>
+</div>
+
+<div class="full">
+  <section class="card">
+    <h3>Sismo longitudinal R = 4,5 <span>· Tabla 15, arriostramiento concéntrico (Tipo III-b)</span></h3>
+    <svg id="lienzoYR45" viewBox="0 0 1000 330" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="kpis" id="kpiYR45" style="grid-template-columns:1fr 1fr 1fr 1fr"></div>
+  </section>
+</div>
+<div class="full">
+  <section class="card">
+    <h3>Sismo longitudinal R = 2 <span>· conservador, igual que el transversal (decisión del proyecto)</span></h3>
+    <svg id="lienzoYR2" viewBox="0 0 1000 330" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="kpis" id="kpiYR2" style="grid-template-columns:1fr 1fr 1fr 1fr"></div>
+  </section>
+</div>
+
+<div class="full">
+  <section class="card">
+    <h3>Eje Y: diafragma rígido contra flexible <span>· una fachada, Cd = 3,75 (Tabla 15)</span></h3>
+    <table id="tablaY">
+      <thead><tr><th>Magnitud</th><th>Rígido · R = 4,5</th><th>Rígido · R = 2</th>
+        <th>Flexible · R = 4,5</th><th>Flexible · R = 2</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div id="notasY"></div>
+  </section>
+</div>
+
 <footer>
   Fuente de datos: <code>../cuaderno/calculos.py</code> → <code>modelo.py</code> → <code>solver2d.py</code>
   → <code>datos.js</code>, más <code>dinamica.py</code> → <code>datos2.js</code>.

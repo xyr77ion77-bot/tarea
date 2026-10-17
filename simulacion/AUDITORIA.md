@@ -121,7 +121,72 @@ Nivel B (masas sísmicas reales, 10,81 t por pórtico contra 7,80 t de la planil
 * No hay estudio de mecánica de suelos: los resortes de la cimentación son hipótesis declaradas
   (AUDITORIA del cuaderno), no resultados de ensayos.
 
-## 7. Archivos
+## 7. Nivel Y: la dirección longitudinal (eje Y)
+
+**Por qué no es «el mismo modelo girado».** En el eje X (transversal) resiste un pórtico tipo que se
+repite 7 veces (columnas en voladizo Tipo IV). En el eje Y (longitudinal, a lo largo de 24,60 m) no
+existe pórtico tipo: resiste la **fachada completa arriostrada**, y el sistema es otro (arriostramiento
+concéntrico con cruces de San Andrés). Por eso el nivel Y es un modelo nuevo (`modelo_y.py` +
+`eje_y.py`) que reutiliza el solver verificado, el análisis modal (Jacobi + Guyan) y el espectro del
+cuaderno, pero con geometría, sistema y masas propios.
+
+**Decisiones del usuario (2026‑10‑17), tras la auditoría de limitantes:** alcance = elevación 2D de
+**una fachada** (sin torsión); vanos arriostrados = **los 6 vanos** (también los extremos) con cruces
+HEB 200 en X; R comparado = **R = 4,5 (Tabla 15, Tipo III‑b) contra R = 2** (el conservador del
+proyecto); diafragma de cubierta en **dos hipótesis, rígido y flexible**, comparadas.
+
+**El modelo.** 7 pilares HEB 300 de 8,50 m cada 4,10 m, empotrados. En este plano flexionan sobre su
+**eje débil** (Iy = 8.563 cm⁴, contra 25.170 cm⁴ del transversal). Cabezas unidas por la correa
+IPN 140 como colector y una cruz HEB 200 por vano (bielas; tracción y compresión, capacidad a
+pandeo con la longitud total de la diagonal, λ = 186, sin contar la conexión del cruce). Se modela
+**una de las dos fachadas**: masa y cortante = mitad del total (W edificio 75.680 kg → 37.840 kg por
+fachada). Cd longitudinal = 3,75 (Tabla 15); al bajar R a 2 se conserva Cd = 3,75. Hipótesis de
+diafragma: rígido = colector axialmente rígido (A × 1000); flexible = correa IPN 140 real.
+
+**Verificación.** La rigidez del solver se contrastó con la fórmula cerrada
+k = 6 vanos · (2·EA/L·cos²θ de la cruz) + 7 pilares eje débil en ménsula = **394.251 kg/cm**:
+el solver da 376.486 kg/cm (error 4,51 %) con diafragma rígido y 358.398 kg/cm (9,09 %) con el
+flexible — la diferencia es justamente la flexibilidad axial del colector, que es lo que la hipótesis
+flexible añade. El modo 1 concentra el 99,4 % (rígido) y el 93,7 % (flexible) de la masa.
+
+**Resultados (una fachada).**
+
+| Magnitud | R = 4,5 | R = 2 |
+|---|---|---|
+| T₁ (rígido / flexible) | 0,070 / 0,072 s | 0,070 / 0,072 s |
+| Ad(T₁) | 0,184 (meseta, T₁ < TC) | 0,414 (meseta) |
+| V por fachada | 6,70 t | 15,08 t |
+| Corte por vano | 1,12 t (= V/6) | 2,51 t (= V/6) |
+| Δ = Cd·δ (rígido / flexible) | 0,08 / 0,11 cm ✓ | 0,18 / 0,25 cm ✓ (lím. 17 cm) |
+| Diagonal máx. (D/C) | 1,38 t (0,038) | 3,11 t (0,084) |
+| Pilar eje débil (D/C) | 0,004 | 0,009 |
+
+**Hallazgos del nivel Y.**
+
+1. **La dirección longitudinal no es el problema sísmico del edificio.** Con R = 2, Δ = 0,25 cm contra
+   el límite de 17 cm; en el transversal, Δ = 29,76 cm y **no cumple**. La fachada arriostrada
+   (k ≈ 358.000 kg/cm) es unas 695 veces más rígida que el pórtico transversal (516 kg/cm).
+2. **Las dos hipótesis de diafragma casi coinciden — por la decisión de arriostrar los 6 vanos.**
+   Con vanos iguales y masa uniforme, el reparto es V/6 por rigidez (rígido) y también V/6 por área
+   tributaria (flexible). Solo queda la flexibilidad del colector: T₁ 0,070 → 0,072 s y Δ R = 2 de
+   0,18 → 0,25 cm. Si los vanos extremos quedaran libres, las hipótesis divergerían (como pasó con
+   el empuje sin tirante en el eje X).
+3. **T₁ cae en la meseta del espectro** (0,07 s ≪ TC = 0,809 s): en esta dirección la ordenada
+   espectral no se reduce por período; lo que manda es el R elegido (Ad 0,184 contra 0,414).
+4. **Ni las cruces ni los pilares están exigidos** (D/C ≤ 0,09): el sistema longitudinal tiene
+   capacidad de sobra con HEB 200, incluso verificando la diagonal a compresión con su longitud
+   total. Lo que gobierna el diseño en esta dirección serían las **conexiones** de las cruces
+   (capacidad 30,1 t citada en el chat, sin cerrar en el cuaderno) y el diafragma, no las barras.
+
+**Límites del nivel Y.** Es una elevación plana de **una** fachada: **no hay torsión** (se suponen
+las dos fachadas iguales, mitad del cortante para cada una; la torsión accidental de la norma
+quedan fuera), no se verificó la lámina de cubierta como diafragma a corte ni el colector como
+elemento (solo su rigidez axial en la hipótesis flexible), no se verificaron conexiones ni la
+cimentación en dirección longitudinal (vuelco y deslizamiento en Y), y la deriva se compara con el
+mismo límite 0,02·h = 17 cm del cuaderno, como referencia. El nivel C (3D, torsión incluida) sigue
+siendo el paso que cerraría estos puntos.
+
+## 8. Archivos
 
 | Archivo | Contenido |
 |---|---|
@@ -133,14 +198,19 @@ Nivel B (masas sísmicas reales, 10,81 t por pórtico contra 7,80 t de la planil
 | `datos.js`, `datos2.js` | esos datos embebidos para el visor (generados) |
 | `index.html`, `app.js` | visor animado del nivel A (estático) |
 | `app_din.js` | visor del nivel B: R = 6 contra R = 2, modo, espectro y tablas |
+| `modelo_y.py`, `eje_y.py` | **nivel Y**: elevación de la fachada longitudinal (7 pilares eje débil, cruces HEB 200 en los 6 vanos); escribe `modelo_y.json`, `resultados_y.json`, `datos_y.js` |
+| `modelo_y.json`, `resultados_y.json` | datos generados del nivel Y (no editar a mano) |
+| `datos_y.js` | esos datos embebidos para el visor (generado) |
+| `app_y.js` | visor del nivel Y: R = 4,5 contra R = 2, diafragma rígido/flexible y tabla comparativa |
 | `README.md` | guía rápida |
 
-## 8. Cómo se usa el visor
+## 9. Cómo se usa el visor
 
 ```bash
 cd simulacion
 python3 modelo.py && python3 solver2d.py     # regenera modelo.json, resultados.json, datos.js
 python3 dinamica.py                          # regenera modal.json, datos2.js (nivel B)
+python3 modelo_y.py && python3 eje_y.py      # nivel Y: modelo_y.json, resultados_y.json, datos_y.js
 python3 -m http.server 8001                  # o abrir index.html directamente
 ```
 
@@ -158,14 +228,20 @@ El visor tiene dos bloques:
   el mismo instante de tiempo (la diferencia que se ve es la del sismo, no la del dibujo), el
   **modo fundamental** con sus fuerzas inerciales, el **espectro de diseño** con `Ta`, `TC` y `T₁`
   marcados, y dos tablas: *estático contra dinámico* y *sin tirante: las dos hipótesis de empuje*.
+* **Nivel Y (longitudinal).** Dos paneles animados y sincronizados de la fachada arriostrada,
+  **R = 4,5 contra R = 2**, con la misma amplificación; arriba, el selector de **hipótesis de
+  diafragma** (rígido / flexible) que recalcula KPIs y deformadas al instante, y la tabla que
+  compara T₁, rigidez, cortante por vano, deriva, diagonales y pilares en las cuatro combinaciones.
+  Como T₁ ≈ 0,07 s, la oscilación va en cámara muy lenta (×1/250) y la deformada se amplifica
+  ×~1.050: el movimiento real es de milímetros (Δ máxima 0,25 cm).
 
 Los datos que dibuja **no están estimados a ojo**: todos vienen de `resultados.json` y
 `modal.json`. Las flechas verticales son las cargas nodales del caso (por área tributaria real),
 las horizontales el corte sísmico por pilar y las rosadas del modo son `Γ·m·φ`.
 
-## 9. Preguntas y respuestas
+## 10. Preguntas y respuestas
 
-### 9.1 Respuestas del usuario (2026-10-15)
+### 10.1 Respuestas del usuario (2026-10-15)
 
 | Pregunta | Respuesta |
 |---|---|
@@ -175,10 +251,21 @@ las horizontales el corte sísmico por pilar y las rosadas del modo son `Γ·m·
 | Datos de plano | Cordones **2×IPE 160** y **pasarela de 25 kg/m** colgando del cordón inferior → PP real ≈ 135 kg/m |
 | Salida | **Solo el visor HTML** (sin video ni informe PDF) |
 
-### 9.2 Preguntas que siguen abiertas (para el nivel C o para el expediente)
+### 10.1 bis Respuestas del usuario — eje Y / dirección longitudinal (2026-10-17)
 
-1. **¿Se modela el nivel C?** Hacen falta las masas y rigideces de la losa de cubierta y del
-   arriostramiento longitudinal (HEB 200 en los vanos 2–5) para mirar torsión y los 7 pórticos.
+| Pregunta | Respuesta |
+|---|---|
+| Alcance en Y | **Elevación 2D de la fachada longitudinal** (7 pilares, cruces en X); no 3D ni torsión por ahora |
+| Vanos arriostrados | **Los 6 vanos**, incluidos los extremos (simetría total; resuelve la ambigüedad «vanos 2–5» vs tres vanos del chat) |
+| R longitudinal | **Comparar R = 4,5 (Tabla 15) y R = 2 lado a lado**, como en el eje X |
+| Diafragma de cubierta | **Mostrar las dos hipótesis** (rígido y flexible) comparadas |
+
+### 10.2 Preguntas que siguen abiertas (para el nivel C o para el expediente)
+
+1. **¿Se modela el nivel C?** El nivel Y ya cubre la fachada longitudinal (los 6 vanos arriostrados
+   en X, HEB 200); para mirar la torsión y los 7 pórticos trabajando juntos hacen falta todavía la
+   rigidez real del diafragma de cubierta (lámina + correas verificadas a corte) y las conexiones
+   de las cruces.
 2. **¿Qué hipótesis de empuje se adopta en el expediente?** Hay que decidir si el tirante se
    considera elemento estructural principal (recomendado, D/C 0,546) o si se documenta el escenario
    sin él y se redimensiona el cordón y la cimentación.
@@ -189,9 +276,9 @@ las horizontales el corte sísmico por pilar y las rosadas del modo son `Γ·m·
 5. **¿Hace falta el registro del tirante en los planos** (P‑01/CL‑01) y la nota de que sin él el
    cordón no cumple? Es la recomendación directa del punto 7 de §5.
 
-## 10. Ruta de trabajo (lo que se hizo, en orden)
+## 11. Ruta de trabajo (lo que se hizo, en orden)
 
-1. Auditar la petición y hacer las preguntas (§9.1) → respuestas del usuario.
+1. Auditar la petición y hacer las preguntas (§10.1) → respuestas del usuario.
 2. Armar el modelo 2D leyendo `calculos.py` (nada duplicado a mano).
 3. Escribir el solver y **verificarlo** contra cuatro fórmulas cerradas y el reparto del empuje (§3).
 4. Correr los 5 casos, comparar con el cuaderno y anotar los hallazgos (§5).

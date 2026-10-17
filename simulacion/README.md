@@ -1,4 +1,4 @@
-# `simulacion/` — simulación 2D del pórtico del auditorio (nivel A + B)
+# `simulacion/` — simulación 2D del auditorio (niveles A + B y eje Y)
 
 Subdirectorio de la petición «**simulación en 2D para ver las cargas en acción, movimiento
 lateral, etc.**» del auditorio UPT Barlovento «Argelia Laya» (Higuerote).
@@ -12,6 +12,9 @@ dinámico para que la simulación quede sincronizada.
 * **Nivel B** (dinámico): `dinamica.py` + `index.html`/`app_din.js` — período fundamental,
   modo de vibración, espectro evaluado en `T₁`, comparación R = 6 contra R = 2 y oscilación
   en el tiempo.
+* **Nivel Y** (longitudinal): `modelo_y.py` + `eje_y.py` + `app_y.js` — elevación de UNA fachada
+  arriostrada (7 pilares sobre su eje débil, cruces HEB 200 en los 6 vanos), comparación
+  R = 4,5 (Tabla 15) contra R = 2, y diafragma rígido contra flexible.
 
 ## Archivos
 
@@ -25,6 +28,10 @@ dinámico para que la simulación quede sincronizada.
 | `datos.js` · `datos2.js` | los mismos datos embebidos para el visor (generados) |
 | `index.html` · `app.js` | **visor nivel A**: cargas, deformada amplificada, axiales con color, deriva, momentos en los pilares y la oscilación sísmica con el período real `T₁` |
 | `app_din.js` | **visor nivel B**: comparación animada R = 6 / R = 2 lado a lado, modo fundamental con sus fuerzas inerciales, gráfico del espectro y tablas estático‑contra‑dinámico y *sin tirante: dos hipótesis* |
+| `modelo_y.py` | modelo del eje Y: 14 nudos, 25 elementos (7 pilares HEB 300 eje débil, colector IPN 140, 12 diagonales HEB 200 en X). Escribe `modelo_y.json` |
+| `eje_y.py` | nivel Y: estático + modal (Jacobi/Guyan) de la fachada para R = 4,5 y R = 2 con diafragma rígido y flexible; verificación de rigidez por fórmula cerrada. Escribe `resultados_y.json` + `datos_y.js` |
+| `modelo_y.json` · `resultados_y.json` · `datos_y.js` | datos generados del nivel Y (no editar a mano) |
+| `app_y.js` | **visor nivel Y**: fachada animada R = 4,5 / R = 2, selector de diafragma y tabla comparativa |
 
 ## Cómo se corre
 
@@ -33,6 +40,7 @@ cd simulacion
 python3 modelo.py                  # 22 nudos, 44 barras, 5 casos
 python3 solver2d.py                # verifica y resuelve; escribe resultados.json + datos.js
 python3 dinamica.py                # nivel B; escribe modal.json + datos2.js
+python3 modelo_y.py && python3 eje_y.py   # nivel Y; escribe modelo_y.json, resultados_y.json + datos_y.js
 python3 -m http.server 8001 --bind 0.0.0.0     # abrir http://localhost:8001/
 ```
 
@@ -81,4 +89,20 @@ Nivel B (mismo pórtico, masas sísmicas reales de 10,81 t contra 7,80 t de la p
 | Deriva Cd·δ (R = 6) | 8,52 cm ✓ | 9,92 cm ✓ |
 | Deriva Cd·δ (R = 2) | 25,57 cm ✗ | 29,76 cm ✗ |
 
-Conclusiones y comparación elemento por elemento con el cuaderno en `AUDITORIA.md` (§5 y §9.1).
+Conclusiones y comparación elemento por elemento con el cuaderno en `AUDITORIA.md` (§5 y §10.1).
+
+## Resultados del eje Y (una fachada; W edificio 75,68 t → 37,84 t por fachada)
+
+| Magnitud | R = 4,5 (Tabla 15) | R = 2 (conservador) |
+|---|---|---|
+| T₁ (rígido / flexible) | 0,070 / 0,072 s | 0,070 / 0,072 s |
+| Ad(T₁) | 0,184 (meseta) | 0,414 (meseta) |
+| V por fachada | 6,70 t | 15,08 t |
+| Δ = Cd·δ (rígido / flexible), Cd = 3,75 | 0,08 / 0,11 cm ✓ | 0,18 / 0,25 cm ✓ (lím. 17 cm) |
+| Diagonal HEB 200 máx. / D/C | 1,38 t / 0,038 | 3,11 t / 0,084 |
+| Pilar eje débil D/C | 0,004 | 0,009 |
+
+Verificación: k del solver 376.486 kg/cm (rígido) y 358.398 kg/cm (flexible) contra la fórmula
+cerrada 394.251 kg/cm (errores 4,5 % y 9,1 %; la diferencia del flexible es la flexibilidad axial
+del colector). **La dirección longitudinal cumple con holgura: el problema sísmico del auditorio
+es el transversal** (Δ = 29,76 cm ✗ con R = 2, nivel B). Detalle en `AUDITORIA.md` §7.

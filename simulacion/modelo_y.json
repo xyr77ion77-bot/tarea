@@ -1,0 +1,373 @@
+{
+ "unidades": {
+  "longitud": "cm",
+  "fuerza": "kg",
+  "momento": "kg·cm"
+ },
+ "E": 2100000.0,
+ "nodos": [
+  {
+   "n": "b0",
+   "x": 0.0,
+   "y": 0.0,
+   "tipo": "apoyo"
+  },
+  {
+   "n": "b1",
+   "x": 410.0,
+   "y": 0.0,
+   "tipo": "apoyo"
+  },
+  {
+   "n": "b2",
+   "x": 820.0,
+   "y": 0.0,
+   "tipo": "apoyo"
+  },
+  {
+   "n": "b3",
+   "x": 1230.0,
+   "y": 0.0,
+   "tipo": "apoyo"
+  },
+  {
+   "n": "b4",
+   "x": 1640.0,
+   "y": 0.0,
+   "tipo": "apoyo"
+  },
+  {
+   "n": "b5",
+   "x": 2050.0,
+   "y": 0.0,
+   "tipo": "apoyo"
+  },
+  {
+   "n": "b6",
+   "x": 2460.0,
+   "y": 0.0,
+   "tipo": "apoyo"
+  },
+  {
+   "n": "t0",
+   "x": 0.0,
+   "y": 850.0,
+   "tipo": "pilar"
+  },
+  {
+   "n": "t1",
+   "x": 410.0,
+   "y": 850.0,
+   "tipo": "pilar"
+  },
+  {
+   "n": "t2",
+   "x": 820.0,
+   "y": 850.0,
+   "tipo": "pilar"
+  },
+  {
+   "n": "t3",
+   "x": 1230.0,
+   "y": 850.0,
+   "tipo": "pilar"
+  },
+  {
+   "n": "t4",
+   "x": 1640.0,
+   "y": 850.0,
+   "tipo": "pilar"
+  },
+  {
+   "n": "t5",
+   "x": 2050.0,
+   "y": 850.0,
+   "tipo": "pilar"
+  },
+  {
+   "n": "t6",
+   "x": 2460.0,
+   "y": 850.0,
+   "tipo": "pilar"
+  }
+ ],
+ "elementos": [
+  {
+   "i": 0,
+   "tipo": "frame",
+   "a": 0,
+   "b": 7,
+   "sec": "HEB 300 (eje débil)",
+   "n": "pilar E1",
+   "L": 850.0
+  },
+  {
+   "i": 1,
+   "tipo": "frame",
+   "a": 1,
+   "b": 8,
+   "sec": "HEB 300 (eje débil)",
+   "n": "pilar E2",
+   "L": 850.0
+  },
+  {
+   "i": 2,
+   "tipo": "frame",
+   "a": 2,
+   "b": 9,
+   "sec": "HEB 300 (eje débil)",
+   "n": "pilar E3",
+   "L": 850.0
+  },
+  {
+   "i": 3,
+   "tipo": "frame",
+   "a": 3,
+   "b": 10,
+   "sec": "HEB 300 (eje débil)",
+   "n": "pilar E4",
+   "L": 850.0
+  },
+  {
+   "i": 4,
+   "tipo": "frame",
+   "a": 4,
+   "b": 11,
+   "sec": "HEB 300 (eje débil)",
+   "n": "pilar E5",
+   "L": 850.0
+  },
+  {
+   "i": 5,
+   "tipo": "frame",
+   "a": 5,
+   "b": 12,
+   "sec": "HEB 300 (eje débil)",
+   "n": "pilar E6",
+   "L": 850.0
+  },
+  {
+   "i": 6,
+   "tipo": "frame",
+   "a": 6,
+   "b": 13,
+   "sec": "HEB 300 (eje débil)",
+   "n": "pilar E7",
+   "L": 850.0
+  },
+  {
+   "i": 7,
+   "tipo": "frame",
+   "a": 7,
+   "b": 8,
+   "sec": "IPN 140 (colector)",
+   "n": "colector vano 1",
+   "L": 410.0
+  },
+  {
+   "i": 8,
+   "tipo": "truss",
+   "a": 0,
+   "b": 8,
+   "sec": "HEB 200",
+   "n": "diagonal ↗ vano 1",
+   "L": 943.72
+  },
+  {
+   "i": 9,
+   "tipo": "truss",
+   "a": 7,
+   "b": 1,
+   "sec": "HEB 200",
+   "n": "diagonal ↘ vano 1",
+   "L": 943.72
+  },
+  {
+   "i": 10,
+   "tipo": "frame",
+   "a": 8,
+   "b": 9,
+   "sec": "IPN 140 (colector)",
+   "n": "colector vano 2",
+   "L": 410.0
+  },
+  {
+   "i": 11,
+   "tipo": "truss",
+   "a": 1,
+   "b": 9,
+   "sec": "HEB 200",
+   "n": "diagonal ↗ vano 2",
+   "L": 943.72
+  },
+  {
+   "i": 12,
+   "tipo": "truss",
+   "a": 8,
+   "b": 2,
+   "sec": "HEB 200",
+   "n": "diagonal ↘ vano 2",
+   "L": 943.72
+  },
+  {
+   "i": 13,
+   "tipo": "frame",
+   "a": 9,
+   "b": 10,
+   "sec": "IPN 140 (colector)",
+   "n": "colector vano 3",
+   "L": 410.0
+  },
+  {
+   "i": 14,
+   "tipo": "truss",
+   "a": 2,
+   "b": 10,
+   "sec": "HEB 200",
+   "n": "diagonal ↗ vano 3",
+   "L": 943.72
+  },
+  {
+   "i": 15,
+   "tipo": "truss",
+   "a": 9,
+   "b": 3,
+   "sec": "HEB 200",
+   "n": "diagonal ↘ vano 3",
+   "L": 943.72
+  },
+  {
+   "i": 16,
+   "tipo": "frame",
+   "a": 10,
+   "b": 11,
+   "sec": "IPN 140 (colector)",
+   "n": "colector vano 4",
+   "L": 410.0
+  },
+  {
+   "i": 17,
+   "tipo": "truss",
+   "a": 3,
+   "b": 11,
+   "sec": "HEB 200",
+   "n": "diagonal ↗ vano 4",
+   "L": 943.72
+  },
+  {
+   "i": 18,
+   "tipo": "truss",
+   "a": 10,
+   "b": 4,
+   "sec": "HEB 200",
+   "n": "diagonal ↘ vano 4",
+   "L": 943.72
+  },
+  {
+   "i": 19,
+   "tipo": "frame",
+   "a": 11,
+   "b": 12,
+   "sec": "IPN 140 (colector)",
+   "n": "colector vano 5",
+   "L": 410.0
+  },
+  {
+   "i": 20,
+   "tipo": "truss",
+   "a": 4,
+   "b": 12,
+   "sec": "HEB 200",
+   "n": "diagonal ↗ vano 5",
+   "L": 943.72
+  },
+  {
+   "i": 21,
+   "tipo": "truss",
+   "a": 11,
+   "b": 5,
+   "sec": "HEB 200",
+   "n": "diagonal ↘ vano 5",
+   "L": 943.72
+  },
+  {
+   "i": 22,
+   "tipo": "frame",
+   "a": 12,
+   "b": 13,
+   "sec": "IPN 140 (colector)",
+   "n": "colector vano 6",
+   "L": 410.0
+  },
+  {
+   "i": 23,
+   "tipo": "truss",
+   "a": 5,
+   "b": 13,
+   "sec": "HEB 200",
+   "n": "diagonal ↗ vano 6",
+   "L": 943.72
+  },
+  {
+   "i": 24,
+   "tipo": "truss",
+   "a": 12,
+   "b": 6,
+   "sec": "HEB 200",
+   "n": "diagonal ↘ vano 6",
+   "L": 943.72
+  }
+ ],
+ "secciones": {
+  "HEB 300 (eje débil)": {
+   "A": 149.1,
+   "I": 8563.0,
+   "w": 117.0,
+   "perfil": "HEB 300 (Iy)"
+  },
+  "IPN 140 (colector)": {
+   "A": 18.2,
+   "I": 573.0,
+   "w": 14.3,
+   "perfil": "IPN 140"
+  },
+  "HEB 200": {
+   "A": 78.1,
+   "I": 2003.0,
+   "w": 61.3,
+   "perfil": "HEB 200"
+  }
+ },
+ "enlaces": [],
+ "casos": {
+  "vacio": {
+   "label": "sin cargas (masas)",
+   "Fv": {},
+   "Fh": {},
+   "g_pp": 0.0,
+   "R": null
+  }
+ },
+ "diafragma": "flexible",
+ "apoyo": {
+  "nudos": [
+   "b0",
+   "b1",
+   "b2",
+   "b3",
+   "b4",
+   "b5",
+   "b6"
+  ],
+  "tipo": "empotrado"
+ },
+ "geometria": {
+  "Ltot": 24.6,
+  "S": 4.1,
+  "h": 8.5,
+  "nport": 7,
+  "vanos": 6,
+  "L_diag": 943.72
+ },
+ "nota": "una de las dos fachadas longitudinales; V y masa = mitad del total (sin torsión)"
+}
