@@ -69,7 +69,7 @@ def portada():
   <li><a href="#e9">Tirante de cabeza entre columnas</a></li>
   <li><a href="#e10">Placa base y pernos de anclaje</a></li>
   <li><a href="#e11">Zapata aislada (cálculo más reciente)</a></li>
-  <li><a href="#e12">Viga de riostra 40×40</a></li>
+  <li><a href="#e12">Viga de riostra 25×40 (solo longitudinal)</a></li>
   <li><a href="#e13">Losa sobre terreno y macizo del graderío</a></li>
   <li><a href="#planilla">Planilla general y gráfico D/C</a></li>
   <li><a href="#banderas">Conclusiones y banderas rojas</a></li>
@@ -112,7 +112,7 @@ def sec_datos():
 
 <h3>0.1 Materiales</h3>
 {tabla(["Material / parámetro", "Símbolo", "Valor", "Origen"],
-       [["Concreto de la fundación", "f′ c", "210 kg/cm²", "grado usual para fundaciones (COVENIN-MINDUR 1753)"],
+       [["Concreto de la fundación", "f′ c", "250 kg/cm²", "corrección de cátedra 2026-10-21 (antes 210)"],
         ["Peso específico del concreto armado", "γ c", "2 400 kg/m³", "valor práctico del libro, cap. 8"],
         ["Acero de refuerzo", "f y", "4 200 kg/cm²", "ADN 420 (grado 60), barras corrugadas"],
         ["Acero estructural de perfiles", "F y", "2 530 kg/cm²", "A52 SIDOR, equivalente al A36"],

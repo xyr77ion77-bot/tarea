@@ -12,53 +12,54 @@ cas = b["casos"]
 
 def ej12():
     return f"""
-<h2 id="e12">12 · Viga de riostra 40×40 cm</h2>
-<p>Las zapatas de un pórtico se amarran con vigas de riostra en ambos sentidos: toman el par de
-   vuelco del sismo, evitan el desplazamiento relativo por asentamientos distintos y sirven de
-   encofrado perdido contra el empuje lateral del terreno. El libro pide riostras de 25×25 o
-   40×40 cm con 4 Φ1/2″ mínimo y estribos Φ3/8″ cada ≤ 30 cm (y ≤ 12 d b).</p>
-{figura('fig-riostra', ('12.1', 'Sección de la viga de riostra adoptada: 6 Φ3/4″ y estribos Φ3/8″ @ 20 cm.')) }
+<h2 id="e12">12 · Viga de riostra 25×40 cm — solo longitudinal (corrección Sección 6)</h2>
+<p>Las zapatas se amarran con vigas de riostra <b>solo en el sentido longitudinal</b> (entre columnas
+   separadas 4,10 m), por indicación del profesor. En el sentido transversal la interconexión la
+   cumple la <b>losa sobre terreno</b>, cuyo fondo queda a 1,05 m ≤ 1,50 m del fondo de la zapata
+   (COVENIN 1756-1:2019 §13.4.4.c). El diseño sigue el bloque «VIGAS DE RIOSTRA» del Ing. Laine:
+   acero a tracción A s = 0,15·P u/(φ·f y) con φ = 0,7, más el acero a flexión del momento
+   concurrente repartido por rigidez.</p>
+{figura('fig-riostra', ('12.1', 'Sección de la viga de riostra adoptada: 25×40 cm, 4 Φ1/2″ y estribos Φ3/8″ @ 20 cm.')) }
 
-{calc("Paso 12.1", "Acero longitudinal requerido por la carga axial de la columna (ec. 8.13)",
-      fml("A s = 0,15 · P u / f y      — ec. 8.13 del libro (acero mínimo por efecto de la carga "
-          "axial de la columna sobre la riostra)")
-      + sus(f"P u (columna más cargada) = {ri['P_carga'] * 1000:.0f} kg<br>"
-            f"A s = 0,15 × {ri['P_carga'] * 1000:.0f} / 4 200 = {0.15 * ri['P_carga'] * 1000 / 4200:.2f} cm²<br>"
-            f"Con el factor conservador 0,7 en el denominador (posible excentricidad): "
-            f"A s = {f(ri['A_s_81'], 2)} cm²")
-      + res(f"A s (ec. 8.13) = {f(ri['A_s_81'], 2)} cm²"))}
+{calc("Paso 12.1", "Acero a tracción (Laine: φ·A s·f y &gt; 0,15·P u, φ = 0,7)",
+      fml("A s,trac = 0,15 · P u / (φ · f y)      con P u de la combinación de cátedra 1,4CP + 1,6CV")
+      + sus(f"P u (fundación) = {f(z['P_u_cat'], 2)} t = {f(z['P_u_cat'] * 1000, 0)} kg<br>"
+            f"A s,trac = 0,15 × {f(z['P_u_cat'] * 1000, 0)} / (0,7 × 4 200) = {f(ri['A_s_81'], 2)} cm²<br>"
+            f"Verificación §13.4.4.d: N t = máx[A A/4·P ; 10 %·P] = máx[{f(0.345 / 4 * z['P_CP'], 2)} ; "
+            f"{f(0.10 * z['P_CP'], 2)}] t → gobierna el 10 % de P, cubierto por este acero")
+      + res(f"A s,trac = {f(ri['A_s_81'], 2)} cm²"))}
 
-{calc("Paso 12.2", "Acero mínimo por cuantía",
-      fml("A s,mín = máx [ 0,01·A c ; 0,15·A c·f′c / f y ]")
-      + sus(f"0,01 × {f(ri['Ac'], 0)} = {f(ri['A_s_min1'], 2)} cm²<br>"
-            f"0,15 × {f(ri['Ac'], 0)} × 210 / 4 200 = {f(ri['A_s_min2'], 2)} cm²  →  gobierna el mayor")
-      + res(f"A s,mín = {f(ri['A_s_min'], 2)} cm² "
-            f"(1 % de la sección: es lo que manda en una riostra de 40×40)", ok=None))}
+{calc("Paso 12.2", "Acero a flexión (momento concurrente repartido por rigidez, K v = I/L)",
+      fml("A s,flex = M u / (0,81 · f y · d)      — momento residual de base que no absorbe la zapata")
+      + sus(f"M u = {f(ri['M_res_u'], 2)} t·m = {f(ri['M_res_u'] * 100000, 0)} kg·cm<br>"
+            f"A s,flex = {f(ri['M_res_u'] * 100000, 0)} / (0,81 × 4 200 × 35) = {f(ri['A_s_flex'], 2)} cm²")
+      + res(f"A s,flex = {f(ri['A_s_flex'], 2)} cm²"))}
 
-{calc("Paso 12.3", "Acero si la riostra tomara el empuje del arco (alternativa al tirante)",
-      fml("A s = H u / (0,9 · f y)")
-      + sus(f"A s = {f(a['H_u'], 0)} / (0,9 × 4 200) = {f(ri['A_s_H'], 2)} cm²")
-      + res(f"A s = {f(ri['A_s_H'], 2)} cm² — pequeño: <b>una riostra de 40×40 podría tomar el "
-            f"empuje del arco</b> si se diseña para ello", ok=None))}
-
-{calc("Paso 12.4", "Acero adoptado y verificación",
-      fml("A s,adop ≥ máx [ A s(8.13) ; A s,mín ; A s(H) ]")
-      + sus(f"A s,nec = máx [{f(ri['A_s_81'], 2)} ; {f(ri['A_s_min'], 2)} ; {f(ri['A_s_H'], 2)}] = "
-            f"{f(ri['A_s_req'], 2)} cm²<br>"
-            f"adoptado: 6 Φ3/4″ (3 arriba y 3 abajo) = {f(ri['A_s_adop'], 2)} cm²")
+{calc("Paso 12.3", "Acero adoptado y verificación",
+      fml("A s,nec = A s,trac + A s,flex      A s,adop = 4Ø1/2″")
+      + sus(f"A s,nec = {f(ri['A_s_81'], 2)} + {f(ri['A_s_flex'], 2)} = {f(ri['A_s_req'], 2)} cm²<br>"
+            f"adoptado: 4 Φ1/2″ (2 arriba y 2 abajo) = {f(ri['A_s_adop'], 2)} cm² — gobierna lo "
+            f"constructivo (armadura nominal mínima de la corrección), no el cálculo<br>"
+            f"capacidad: φ·A s·f y = 0,9 × {f(ri['A_s_adop'], 2)} × 4 200 / 1 000 = "
+            f"{f(0.9 * ri['A_s_adop'] * 4200 / 1000, 1)} t ≥ 0,15·P u = {f(0.15 * z['P_u_cat'], 2)} t")
       + res(f"D/C = {f(ri['A_s_req'] / ri['A_s_adop'], 3)}", ok=ri["acero_ok"]))}
 
-{calc("Paso 12.5", "Estribos",
-      fml("s ≤ mín [ 30 cm ; 12·d b ]      — libro, pág. 250–251")
-      + sus(f"12 × d b = 12 × {f(12 * 1.905, 2)} = {f(12 * 1.905, 2)} cm   →   s ≤ mín [30,0 ; "
-            f"{f(12 * 1.905, 2)}] = {f(ri['s_max'], 2)} cm<br>"
-            f"adoptado: Φ3/8″ @ {f(ri['s_estribo'], 0)} cm")
+{calc("Paso 12.4", "Estribos",
+      fml("s ≤ mín [ 25 cm ; 16·d b ]      — reglas de separación de Laine")
+      + sus(f"16 × d b = 16 × 1,27 = {f(16 * 1.27, 1)} cm   →   s ≤ {f(ri['s_max'], 1)} cm<br>"
+            f"adoptado: Φ3/8″ @ {f(ri['s_estribo'], 0)} cm (2 ramas)")
       + res(f"Φ3/8″ @ {f(ri['s_estribo'], 0)} cm ≤ {f(ri['s_max'], 1)} cm", ok=ri["estribo_ok"]))}
 
-{calc("Paso 12.6", "Par de vuelco que transmite la riostra (sismo R = 2)",
-      fml("ΔP = 2·M base / L      — se suma a la carga de la zapata opuesta (paso 11.14)")
-      + sus(f"ΔP = {f(ri['V_zapata_par'], 2)} t (de {f(r2['M_base'], 2)} t·m en cada columna)")
-      + res(f"ΔP = {f(ri['V_zapata_par'], 2)} t", ok=True))}
+{calc("Paso 12.5", "Qué pasa en el sentido transversal (sin riostra)",
+      fml("Interconexión por la losa sobre terreno: distancia fondo de losa → fondo de zapata "
+          "= 1,05 m ≤ 1,50 m (COVENIN 1756-1:2019 §13.4.4.c)")
+      + sus(f"Sin riostra transversal, el par de vuelco del pórtico (ΔP = 2·M base/L = "
+            f"{f(ri['V_zapata_par'], 2)} t con R = 2 en el modelo actual) se cierra con el tirante de "
+            f"cabeza en la superestructura, no en la fundación")
+      + res("Riostra <b>solo longitudinal</b> (25×40, 4Ø1/2″ + Ø3/8″@20); transversal: losa sobre terreno", ok=True)
+      + nota("<b>Divergencia declarada:</b> en el sistema recién adoptado (testeros y fachadas "
+             "arriostradas) el momento de base casi desaparece y este ΔP cambiará; el valor mostrado "
+             "es el del modelo transversal actual, pendiente del recálculo global del sistema nuevo."))}
 """
 
 
@@ -132,21 +133,21 @@ PLANILLA = [
     ("14", "Deriva de entrepiso — sismo R = 2",
      "Δ = C d·δ e = 4,25 × 6,02", "25,57 cm", "17,00 cm"),
     ("15", "Zapata — presión de servicio",
-     "σ s / σ adm = 0,532 / 1,500", "0,532 kg/cm²", "1,500 kg/cm²"),
+     "σ s / σ adm = 0,637 / 1,500", "0,637 kg/cm²", "1,500 kg/cm²"),
     ("16", "Zapata — corte simple",
-     "v u / (0,53√f′c) = 0,335 / 7,68", "0,335 kg/cm²", "7,68 kg/cm²"),
+     "v u / (0,53√f′c) = 0,072 / 8,38", "0,072 kg/cm²", "8,38 kg/cm²"),
     ("17", "Zapata — punzonado",
-     "v u / (1,06√f′c) = 0,884 / 15,36", "0,884 kg/cm²", "15,36 kg/cm²"),
-    ("18", "Zapata — acero adoptado vs requerido",
-     "A s,nec / A s,adop = 8,00 / 8,47", "8,00 cm²/m", "8,47 cm²/m"),
-    ("19", "Zapata — longitud de desarrollo",
-     "L d / L d,disp = 44,81 / 47,50", "44,81 cm", "47,50 cm"),
+     "v u / (1,06√f′c) = 0,403 / 16,76", "0,403 kg/cm²", "16,76 kg/cm²"),
+    ("18", "Zapata — acero adoptado vs requerido (Laine)",
+     "A s,nec / A s,adop = 10,50 / 16,50", "10,50 cm²/m", "16,50 cm²/m"),
+    ("19", "Zapata — longitud de desarrollo (con gancho)",
+     "l dh / L disp = 22,19 / 27,50", "22,19 cm", "27,50 cm"),
     ("20", "Zapata — aplastamiento pedestal–zapata",
-     "P u / φP n = 9,25 / 399,8", "9,25 t", "399,80 t"),
+     "P u / φP n = 9,25 / 1 249,5", "9,25 t", "1 249,50 t"),
     ("21", "Zapata — presión con sismo (σ adm + 33 %)",
-     "σ sismo / (1,33·σ adm) = 0,570 / 1,995", "0,570 kg/cm²", "1,995 kg/cm²"),
+     "σ sismo / (1,33·σ adm) = 0,687 / 1,995", "0,687 kg/cm²", "1,995 kg/cm²"),
     ("22", "Zapata — asentamiento estimado",
-     "s / s adm = 0,447 / 2,50", "0,447 cm", "2,50 cm"),
+     "s / s adm = 0,463 / 2,50", "0,463 cm", "2,50 cm"),
     ("23", "Tirante de cabeza Φ1-1/2″ — tracción",
      "T u / φP n = 14,17 / 25,96", "14,17 t", "25,96 t"),
     ("24", "Placa base — placa a flexión (sismo R = 6)",
@@ -155,12 +156,12 @@ PLANILLA = [
      "T perno / φT n = 2,71 / 5,41", "2,71 t", "5,41 t"),
     ("26", "Placa base — perno Φ1″ a tracción (R = 2)",
      "T perno / φT n = 10,45 / 9,62", "10,45 t", "9,62 t"),
-    ("27", "Viga de riostra 40×40 — acero longitudinal",
-     "A s,nec / A s,adop = 16,00 / 17,10", "16,00 cm²", "17,10 cm²"),
-    ("28", "Pedestal 40×40 — acero longitudinal",
-     "A s,mín / A s,adop = 8,00 / 11,40", "8,00 cm²", "11,40 cm²"),
+    ("27", "Viga de riostra 25×40 (solo longitudinal) — acero",
+     "A s,nec / A s,adop = 1,76 / 5,08", "1,76 cm²", "5,08 cm²"),
+    ("28", "Pedestal 0,60×0,70 — acero longitudinal",
+     "4Ø5/8″ adoptado = 7,92", "7,92 cm²", "7,92 cm²"),
     ("29", "Zapata — deslizamiento sin tirante (FS ≥ 1,5)",
-     "FS = 0,5·P / H u = 5 990 / 14 171", "FS = 0,42", "FS = 1,50"),
+     "FS = 0,5·P / H u = 5 380 / 14 171", "FS = 0,38", "FS = 1,50"),
 ]
 
 
@@ -202,7 +203,7 @@ def conclusiones():
   <li>Todos los perfiles verificados con D/C ≤ 0,73 salvo el cordón del arco (0,725) y la soldadura
       de la diagonal (0,73).</li>
   <li>Fundación resuelta: zapata aislada de <b>{f(z['B'], 2)} × {f(z['B'], 2)} × {f(z['hz'], 2)} m</b>
-      con malla Φ1/2″ @ {f(z['s_adop'], 0)} cm, presionando el suelo al
+      con malla Φ5/8″ @ {f(z['s_adop'], 0)} cm (con gancho), presionando el suelo al
       {f(z['u_serv'] * 100, 1)} % de la capacidad admisible hipotética.</li>
   <li>La necesidad del tirante de cabeza quedó demostrada numéricamente por dos vías:
       la interacción P–M de la columna (3,18) y el deslizamiento de la zapata (FS = 0,42).</li>

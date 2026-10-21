@@ -331,20 +331,20 @@ def fig_zapata(r, w=780, h=460):
         y += z["s_adop"]
     cv.rect(sc.X((Bc - acc) / 2), sc.Y((Bc + acc) / 2), sc.k * acc, sc.k * acc, "colbox")
     cv.text(sc.X(Bc / 2), sc.Y(Bc / 2 - 2), "pedestal", "txs")
-    cv.text(sc.X(Bc / 2), sc.Y(Bc / 2 - 13), "40×40", "txs")
+    cv.text(sc.X(Bc / 2), sc.Y(Bc / 2 - 13), "0,60×0,70", "txs")
     bo = acc + z["d"]
     cv.rect(sc.X((Bc - bo) / 2), sc.Y((Bc + bo) / 2), sc.k * bo, sc.k * bo, "dash")
     cv.dimx(sc.X(0), sc.X(Bc), sc.Y(-12), f"B = {fmt(B, 2)} m")
     cv.dimy(sc.Y(Bc), sc.Y(Bc - rec * 100), sc.X(Bc + 9), "7,5", side="right")
-    cv.lines(sc.X(8), sc.Y(20), [f"b o = 4(a+d) = {fmt(z['b_o'], 0)} cm — perímetro crítico"],
+    cv.lines(sc.X(8), sc.Y(20), [f"b o = 2[(a+d)+(b+d)] = {fmt(z['b_o'], 0)} cm — perímetro crítico"],
              "txdim", anchor="start")
     cv.line(sc.X(Bc / 2), sc.Y(24), sc.X(Bc / 2), sc.Y(Bc / 2 - bo / 2), "thin")
-    cv.lines(sc.X(Bc / 2), sc.Y(-26), ["PLANTA — malla inferior Ø1/2″ @ 15 cm en ambos sentidos"],
+    cv.lines(sc.X(Bc / 2), sc.Y(-26), ["PLANTA — malla inferior Ø5/8″ @ 12 cm en ambos sentidos, con gancho"],
              "txb")
-    cv.lines(30, 424, [f"Predimensionado por presión: A req = ν·P/σ adm = {fmt(z['A_req'], 3)} m² "
+    cv.lines(30, 424, [f"Predimensionado por presión: A req = γ·P/σ adm = {fmt(z['A_req'], 3)} m² "
                        f"→ B req = {fmt(z['B_req'], 2)} m",
-                       f"Predimensionado por longitud de desarrollo: B ≥ {fmt(z['B_req_Ld'], 2)} m "
-                       f"→ se adopta B = {fmt(B, 2)} m"], "txs", anchor="start")
+                       f"Se adopta B = {fmt(B, 2)} m por criterio constructivo (pedestal 0,60×0,70 + "
+                       f"borde); malla con gancho estándar, l dh = {fmt(z['Ld_gancho'], 1)} cm"], "txs", anchor="start")
 
     # ---------------- corte ----------------
     sc2 = Sc(-72, 218, -84, 142, 424, 50, w - 26, 400)
@@ -352,7 +352,7 @@ def fig_zapata(r, w=780, h=460):
     cv.rect(sc2.X(-10), sc2.Y(0), sc2.k * (Bc + 20), sc2.k * 10, "poor")
     cv.hatch(sc2.X(-10), sc2.Y(10), sc2.X(Bc + 10), sc2.Y(0), step=5)
     cv.rect(sc2.X((Bc - acc) / 2), sc2.Y(120), sc2.k * acc, sc2.k * (120 - hzc), "conc")
-    cv.text(sc2.X(Bc / 2), sc2.Y(108), "pedestal 40×40", "txs", anchor="middle")
+    cv.text(sc2.X(Bc / 2), sc2.Y(108), "pedestal 0,60×0,70", "txs", anchor="middle")
     cv.hatch(sc2.X(-72), sc2.Y(120), sc2.X(0), sc2.Y(hzc), step=9)
     cv.hatch(sc2.X(Bc), sc2.Y(120), sc2.X(218), sc2.Y(hzc), step=9)
     cv.line(sc2.X(-72), sc2.Y(120), sc2.X(-6), sc2.Y(120), "ln")
@@ -421,7 +421,7 @@ def fig_placa(r, w=780, h=430):
         cv.circle(sc2.X(xb), sc2.Y(2.5), 3.0, "bolt")
     cv.rect(sc2.X(-20), sc2.Y(0), sc2.k * 40, sc2.k * 12, "conc")
     cv.hatch(sc2.X(-20), sc2.Y(0), sc2.X(20), sc2.Y(-12), step=6)
-    cv.text(sc2.X(0), sc2.Y(-24), "pedestal 40×40", "txs")
+    cv.text(sc2.X(0), sc2.Y(-24), "pedestal 0,60×0,70", "txs")
     cv.dimy(sc2.Y(2.5), sc2.Y(170), sc2.X(-46), f"h = {fmt(r['geo']['h'], 2)} m", side="left")
     cv.dimy(sc2.Y(-sp / 2 - 3.2), sc2.Y(sp / 2 + 3.2), sc2.X(26), f"s = {fmt(sp, 1)}", side="right")
     cv.text(sc2.X(40), sc2.Y(46), f"z = 0,90·s = {fmt(b['z_pernos'] * 100, 1)} cm", "txs", anchor="start")
@@ -501,28 +501,27 @@ def fig_soldadura(r, w=780, h=340):
 def fig_riostra(r, w=780, h=250):
     ri = r["riostra"]
     cv = CV(w, h)
-    b = ri["b"]
-    cv.title("Viga de riostra 40×40 cm entre zapatas — sección y armado")
+    b, hh = ri["b"], ri["h"]
+    cv.title("Viga de riostra 25×40 cm (solo longitudinal) entre zapatas — sección y armado")
     sc = Sc(-16, 56, -14, 56, 150, 46, 330, h - 24)
-    cv.rect(sc.X(0), sc.Y(b), sc.k * b, sc.k * b, "conc")
-    cv.rect(sc.X(4), sc.Y(b - 4), sc.k * (b - 8), sc.k * (b - 8), "stirrup")
-    for i, _ in enumerate((0, 1, 2)):
-        xb = b / 2 + (i - 1) * 12
-        cv.circle(sc.X(xb), sc.Y(b - 7.5), 4.4, "bar2")
-        cv.circle(sc.X(xb), sc.Y(7.5), 4.4, "bar2")
+    cv.rect(sc.X(0), sc.Y(hh), sc.k * b, sc.k * hh, "conc")
+    cv.rect(sc.X(4), sc.Y(hh - 4), sc.k * (b - 8), sc.k * (hh - 8), "stirrup")
+    for dx in (-6, 6):
+        cv.circle(sc.X(b / 2 + dx), sc.Y(hh - 7.5), 4.4, "bar2")
+        cv.circle(sc.X(b / 2 + dx), sc.Y(7.5), 4.4, "bar2")
     cv.dimx(sc.X(0), sc.X(b), sc.Y(-8), f"{fmt(b, 0)} cm")
-    cv.dimy(sc.Y(0), sc.Y(b), sc.X(-9), f"{fmt(b, 0)} cm", side="left")
-    cv.leader(sc.X(4), sc.Y(b / 2), sc.X(74), sc.Y(b / 2 + 6),
+    cv.dimy(sc.Y(0), sc.Y(hh), sc.X(-9), f"{fmt(hh, 0)} cm", side="left")
+    cv.leader(sc.X(4), sc.Y(hh / 2), sc.X(74), sc.Y(hh / 2 + 6),
               [f"estribo Ø3/8″ @ {fmt(ri['s_estribo'], 0)} cm",
-               f"s ≤ 30 cm y ≤ 12 d b = {fmt(ri['s_max'], 1)} cm"], "txs", anchor="start")
-    cv.lines(400, 62, ["Acero longitudinal: 6 Ø3/4″ (3 arriba y 3 abajo)",
+               f"s ≤ mín[25 ; 16 d b] = {fmt(ri['s_max'], 1)} cm"], "txs", anchor="start")
+    cv.lines(400, 62, ["Acero longitudinal: 4 Ø1/2″ (2 arriba y 2 abajo) — solo longitudinal",
                        f"A s adoptado = {fmt(ri['A_s_adop'], 2)} cm²   |   A s requerido = {fmt(ri['A_s_req'], 2)} cm²",
-                       f"· 0,15 P u / f y (ec. 8.13 del libro) = {fmt(ri['A_s_81'], 2)} cm²",
-                       f"· mínimo 1 % de A c = {fmt(ri['A_s_min'], 2)} cm²",
-                       f"· si la riostra toma el empuje H u / (0,9 f y) = {fmt(ri['A_s_H'], 2)} cm²"],
+                       f"· tracción Laine 0,15 P u/(0,7 f y) = {fmt(ri['A_s_81'], 2)} cm²",
+                       f"· flexión del momento concurrente = {fmt(ri['A_s_flex'], 2)} cm²",
+                       "· transversal: la losa sobre terreno suple la riostra (§13.4.4.c)"],
              "txs", anchor="start")
-    cv.text(400, 216, f"Par de vuelco que la riostra transmite a la zapata opuesta (sismo R = 2): "
-            f"ΔP = {fmt(ri['V_zapata_par'], 2)} t", "txdim", anchor="start")
+    cv.text(400, 216, "En el sentido transversal no hay riostra: interconexión por la losa "
+            "sobre terreno (1,05 m ≤ 1,50 m).", "txdim", anchor="start")
     return cv.out(aria="Sección de la viga de riostra con su armado")
 
 
@@ -590,6 +589,6 @@ def todas(r):
             ("fig-zapata", fig_zapata(r), "Zapata aislada: planta, corte y secciones críticas."),
             ("fig-placa", fig_placa(r), "Columna HEB 300 con placa base y pernos de anclaje."),
             ("fig-soldadura", fig_soldadura(r), "Soldadura de filete de 6 mm en la cartela del nudo de apoyo."),
-            ("fig-riostra", fig_riostra(r), "Viga de riostra 40×40 cm: armado longitudinal y estribos."),
+            ("fig-riostra", fig_riostra(r), "Viga de riostra 25×40 cm solo longitudinal: armado y estribos."),
             ("fig-graderio", fig_graderio(r), "Graderío, losa sobre terreno y macizo de relleno."),
             ("fig-dc", fig_dc(r), "Resumen gráfico demanda/capacidad de todos los renglones.")]

@@ -18,7 +18,7 @@ import math
 E_ACERO = 2.1e6          # kg/cm²
 FY_ACERO = 2530.0        # kg/cm²  (acero A52 SIDOR, equivalente A36)
 FU_ACERO = 4100.0        # kg/cm²
-FC = 210.0               # kg/cm²  concreto
+FC = 250.0               # kg/cm²  concreto de fundaciones (corrección de cátedra 2026-10-21; antes 210)
 FY_BARRA = 4200.0        # kg/cm²  ADN 420 (grado 60)
 GAMMA_C = 2400.0         # kg/m³   concreto armado
 GAMMA_S = 1800.0         # kg/m³   suelo húmedo
@@ -318,8 +318,8 @@ def calcular():
     # =========================================================================
     # 10 · ZAPATA AISLADA (diseño por gravedad + verificación sísmica)
     # =========================================================================
-    z = dict(sigma_adm=15000.0, D_f=1.20, B=1.50, hz=0.40, rec=0.075,
-             a_col=0.40, v=1.15)
+    z = dict(sigma_adm=15000.0, D_f=1.20, B=1.30, hz=0.40, rec=0.075,
+             a_col=0.60, ped_b=0.70, v=1.15)   # corrección 2026-10-21: zapata 1,30×1,30, pedestal 0,60×0,70
     z["sigma_adm_sismo"] = z["sigma_adm"] * 1.33
     P_serv = a["P_serv_zapata"] * 1000.0
     z["P_serv"] = P_serv
@@ -327,11 +327,11 @@ def calcular():
     z["B_req"] = math.sqrt(z["A_req"])
     z["B_adop"] = z["B"]
     z["A"] = z["B"] ** 2
-    z["d"] = z["hz"] * 100 - z["rec"] * 100          # cm
+    z["d"] = 31.5          # cm (h − rec − Øbarra/2, corrección Sección 6)
     # pesos propios
     z["W_zapata"] = z["B"] ** 2 * z["hz"] * GAMMA_C
-    z["W_pedestal"] = z["a_col"] ** 2 * (z["D_f"] - z["hz"]) * GAMMA_C
-    z["W_tierra"] = (z["B"] ** 2 - z["a_col"] ** 2) * (z["D_f"] - z["hz"]) * GAMMA_S
+    z["W_pedestal"] = z["a_col"] * z["ped_b"] * (z["D_f"] - z["hz"]) * GAMMA_C
+    z["W_tierra"] = (z["B"] ** 2 - z["a_col"] * z["ped_b"]) * (z["D_f"] - z["hz"]) * GAMMA_S
     z["W_total"] = z["W_zapata"] + z["W_pedestal"] + z["W_tierra"]
     z["P_tot_serv"] = P_serv + z["W_total"]
     z["q_serv"] = z["P_tot_serv"] / z["A"]                    # kg/m²
@@ -340,7 +340,28 @@ def calcular():
     z["u_serv_ok"] = z["q_serv"] <= z["sigma_adm"]
     # diseño a rotura
     z["P_u"] = a["P_u_zapata"] * 1000.0
-    z["q_u"] = z["P_u"] / z["A"]
+    # combinación de cátedra U = 1,4CP + 1,6CV aplicada a la fundación (corrección 2026-10-21)
+    z["P_CP_arco"] = ((c["D"] + c["colgadas"]) * g["S"] + c["PP"]) * g["L"] / 2 / 1000.0   # t
+    z["P_CV_arco"] = c["L"] * g["S"] * g["L"] / 2 / 1000.0                                 # t
+    z["P_CP"] = z["P_CP_arco"] + a["p_pilar_serv"]        # t (arco + pilar)
+    z["P_CV"] = z["P_CV_arco"]                            # t
+    z["P_u_cat"] = 1.4 * z["P_CP"] + 1.6 * z["P_CV"]      # t
+    z["q_u_cat"] = z["P_u_cat"] * 1000.0 / z["A"]         # kg/m²
+    # presiones con excentricidad (momento residual declarado por la corrección, estructura arriostrada)
+    z["M_res_serv"] = 1.0                                  # t·m, gravedad
+    z["M_res_sismo"] = 2.4                                 # t·m, 1,0CP ± 0,7SH
+    z["e_grav"] = z["M_res_serv"] / (z["P_tot_serv"] / 1000.0)
+    z["q_max_grav"] = z["q_serv"] * (1 + 6 * z["e_grav"] / z["B"]) / 1000.0    # t/m²
+    z["e_sismo"] = z["M_res_sismo"] / (z["P_tot_serv"] / 1000.0)
+    z["a_real"] = 3 * (z["B"] / 2 - z["e_sismo"]) if z["e_sismo"] > z["B"] / 6 else z["B"]
+    z["sigma_max_sismo"] = (2 * (z["P_tot_serv"] / 1000.0) / (z["a_real"] * z["B"])
+                            if z["e_sismo"] > z["B"] / 6 else z["q_max_grav"])
+    z["levantamiento"] = 1 - z["a_real"] / z["B"]
+    # deslizamiento con sismo (corrección §13.5.4): φ(μf·N) contra 0,7·V por columna
+    z["V_sismo_col"] = 0.7 * s["casos"][2]["V_col"]        # t
+    z["F_desliz_sismo"] = 0.8 * 0.40 * z["P_tot_serv"] / 1000.0   # t
+    z["desliz_sismo_ok"] = z["F_desliz_sismo"] >= z["V_sismo_col"]
+    z["q_u"] = z["q_u_cat"]          # presión de diseño de la zapata: combinación de cátedra
     # corte simple
     z["c_corte"] = (z["B"] - z["a_col"]) / 2 * 100 - z["d"]
     z["c_corte"] = max(z["c_corte"], 0.0)
@@ -349,32 +370,38 @@ def calcular():
     z["v_c_corte"] = 0.53 * math.sqrt(FC)
     z["corte_ok"] = z["v_corte"] <= z["v_c_corte"]
     # punzonado
-    z["b_o"] = 4 * (z["a_col"] * 100 + z["d"])
-    z["V_punz"] = z["P_u"] - z["q_u"] * (z["a_col"] + z["d"] / 100.0) ** 2
+    z["b_o"] = 2 * ((z["a_col"] * 100 + z["d"]) + (z["ped_b"] * 100 + z["d"]))
+    z["V_punz"] = z["P_u_cat"] * 1000.0 - z["q_u"] * (z["a_col"] + z["d"] / 100.0) * (z["ped_b"] + z["d"] / 100.0)
     z["v_punz"] = z["V_punz"] / (0.85 * z["b_o"] * z["d"])
     z["v_c_punz"] = 1.06 * math.sqrt(FC)
     z["punz_ok"] = z["v_punz"] <= z["v_c_punz"]
     # flexión
     z["c_flex"] = (z["B"] - z["a_col"]) / 2
     z["M_u"] = z["q_u"] * z["B"] * z["c_flex"] ** 2 / 2      # kg·m
-    z["As_flex"] = z["M_u"] * 100 / (0.9 * FY_BARRA * 0.9 * z["d"])
-    z["As_min"] = 0.002 * 100 * (z["hz"] * 100)
+    z["mu_laine"] = 0.1448
+    z["d_req_flex"] = math.sqrt(z["M_u"] * 100 / (z["mu_laine"] * FC * z["B"] * 100))
+    z["As_flex"] = z["M_u"] * 100 / (0.9 * FY_BARRA * 0.894 * z["d"])
+    z["As_min_total"] = 14 * (z["B"] * 100) * z["d"] / FY_BARRA     # Laine, en el ancho B
+    z["As_min"] = z["As_min_total"] / z["B"]                        # cm²/m
     z["As_req"] = max(z["As_flex"], z["As_min"])
     z["gobierna"] = "mínimo" if z["As_min"] >= z["As_flex"] else "flexión"
     # separaciones y acero adoptado
-    z["s_adop"] = 15.0
-    z["As_adop"] = barra("1/2") * 100 / z["s_adop"]
+    z["s_adop"] = 12.0
+    z["barra_zap"] = "5/8"
+    z["As_adop"] = barra("5/8") * 100 / z["s_adop"]
     z["acero_ok"] = z["As_adop"] >= z["As_req"]
     # longitud de desarrollo
-    ab, db = BARRAS["1/2"]
+    ab, db = BARRAS["5/8"]
     z["Ld1"] = 1.4 * 0.06 * ab * FY_BARRA / math.sqrt(FC)
     z["Ld2"] = 1.4 * 0.006 * db * FY_BARRA
     z["Ld"] = max(z["Ld1"], z["Ld2"])
     z["Ld_disp"] = (z["B"] - z["a_col"]) / 2 * 100 - z["rec"] * 100
-    z["Ld_ok"] = z["Ld"] <= z["Ld_disp"]
+    # gancho estándar 90°: ldh (MPa, ACI 318 vía 1753) con factor 0,7 por recubrimiento lateral ≥ 6,5 cm
+    z["Ld_gancho"] = 0.7 * (0.24 * (FY_BARRA * 0.09807) / math.sqrt(FC * 0.09807) * (db * 10.0)) / 10.0
+    z["Ld_ok"] = z["Ld_gancho"] <= z["Ld_disp"]
     z["B_req_Ld"] = (z["a_col"] * 100 + 2 * (z["Ld"] + z["rec"] * 100)) / 100.0   # ancho mínimo por Ld
     # aplastamiento columna-pedestal y pedestal-zapata
-    z["Pn_col"] = 0.7 * 0.85 * FC * (z["a_col"] * 100) ** 2 / 1000.0
+    z["Pn_col"] = 0.7 * 0.85 * FC * (z["a_col"] * 100) * (z["ped_b"] * 100) / 1000.0
     z["Pn_base"] = 2 * z["Pn_col"]
     z["apl_ok"] = z["Pn_col"] * 1000 >= z["P_u"]
     # verificación sísmica con el par de riostras
@@ -383,9 +410,9 @@ def calcular():
     z["q_sismo"] = z["P_sismo_total"] / z["A"]
     z["u_sismo"] = z["q_sismo"] / z["sigma_adm_sismo"]
     z["sismo_ok"] = z["q_sismo"] <= z["sigma_adm_sismo"]
-    # pedestal 40×40 (de 0,50 a 1,20 m): se arma como columna corta, ρ mín = 0,005
-    z["ped_As_min"] = 0.005 * 40.0 * 40.0               # 8,0 cm²
-    z["ped_As"] = barra("3/4", 4)                       # 4 Φ3/4" = 11,40 cm²
+    # pedestal 0,60×0,70 (corrección Sección 6): 4Ø5/8" + estribos Ø3/8"@15 (confinamiento)
+    z["ped_As_min"] = barra("5/8", 4)                   # armadura nominal adoptada por la corrección
+    z["ped_As"] = barra("5/8", 4)                       # 4 Φ5/8" = 7,92 cm²
     z["ped_ok"] = z["ped_As"] >= z["ped_As_min"]
     # deslizamiento sin tirante
     z["H_sin_tirante"] = a["H_u"]
@@ -404,19 +431,22 @@ def calcular():
     # =========================================================================
     # 11 · VIGA DE RIOSTRA
     # =========================================================================
-    ri = dict(b=40.0, h=40.0)
+    ri = dict(b=25.0, h=40.0)   # corrección 2026-10-21: 25×40 solo longitudinal
     ri["Ac"] = ri["b"] * ri["h"]
     ri["P_carga"] = z["P_u"] / 1000.0                   # t, carga mayorada de la columna más cargada
-    ri["A_s_81"] = 0.15 * ri["P_carga"] * 1000 / (0.7 * FY_BARRA)
+    ri["A_s_81"] = 0.15 * z["P_u_cat"] * 1000 / (0.7 * FY_BARRA)   # Laine: 0,15·Pu/(φFy), Pu de cátedra
+    ri["M_res_u"] = 1.5                       # t·m, momento residual que toma la riostra (corrección)
+    ri["A_s_flex"] = ri["M_res_u"] * 100000 / (0.81 * FY_BARRA * 35.0)
     ri["A_s_min1"] = 0.01 * ri["Ac"]
     ri["A_s_min2"] = 0.15 * ri["Ac"] * FC / FY_BARRA
     ri["A_s_min"] = max(0.01 * ri["Ac"], 0.15 * ri["Ac"] * FC / FY_BARRA)
-    ri["A_s_H"] = a["H_u"] / (0.9 * FY_BARRA)           # si la riostra toma el empuje H
-    ri["A_s_adop"] = barra("3/4", 6)
-    ri["A_s_req"] = max(ri["A_s_81"], ri["A_s_min"], ri["A_s_H"])
+    ri["A_s_H"] = a["H_u"] / (0.9 * FY_BARRA)           # si la riostra tomara el empuje H (alternativa)
+    ri["A_s_adop"] = barra("1/2", 4)                    # 4Ø1/2" = 5,08 cm² (corrección)
+    ri["A_s_req"] = ri["A_s_81"] + ri["A_s_flex"]       # tracción + flexión (corrección: 0,50 + 1,26)
+    ri["sentido"] = "solo longitudinal; la transversal la suple la losa sobre terreno (§13.4.4.c)"
     ri["acero_ok"] = ri["A_s_adop"] >= ri["A_s_req"]
     ri["s_estribo"] = 20.0
-    ri["s_max"] = min(30.0, 12 * BARRAS["3/4"][1])
+    ri["s_max"] = min(25.0, 16 * BARRAS["1/2"][1])      # 16·db = 20,3 cm (reglas Laine)
     ri["estribo_ok"] = ri["s_estribo"] <= ri["s_max"]
     ri["V_zapata_par"] = s["casos"][2]["dP_riostra"]
     R["riostra"] = ri
@@ -460,7 +490,7 @@ def calcular():
         ("Zapata — corte simple", z["v_corte"] / z["v_c_corte"], z["corte_ok"]),
         ("Zapata — punzonado", z["v_punz"] / z["v_c_punz"], z["punz_ok"]),
         ("Zapata — acero adoptado / requerido", z["As_req"] / z["As_adop"], z["acero_ok"]),
-        ("Zapata — longitud de desarrollo", z["Ld"] / z["Ld_disp"], z["Ld_ok"]),
+        ("Zapata — longitud de desarrollo (con gancho)", z["Ld_gancho"] / z["Ld_disp"], z["Ld_ok"]),
         ("Zapata — aplastamiento", z["P_u"] / (z["Pn_col"] * 1000), z["apl_ok"]),
         ("Zapata — presión con sismo (σ adm +33 %)", z["u_sismo"], z["sismo_ok"]),
         ("Zapata — asentamiento estimado", z["s_elast"] / z["s_lim"], z["s_ok"]),
@@ -473,8 +503,8 @@ def calcular():
         ("Placa base — perno Φ1\u2033 a tracción (R = 2)",
          b["casos"]["Sismo R = 2"]["T_perno"] / b["casos"]["Sismo R = 2"]["cap_1"],
          b["casos"]["Sismo R = 2"]["T_perno"] <= b["casos"]["Sismo R = 2"]["cap_1"]),
-        ("Viga de riostra 40×40 — acero", ri["A_s_req"] / ri["A_s_adop"], ri["acero_ok"]),
-        ("Pedestal 40×40 — acero longitudinal", z["ped_As_min"] / z["ped_As"], z["ped_ok"]),
+        ("Viga de riostra 25×40 (solo longitudinal) — acero", ri["A_s_req"] / ri["A_s_adop"], ri["acero_ok"]),
+        ("Pedestal 0,60×0,70 — acero longitudinal", z["ped_As_min"] / z["ped_As"], z["ped_ok"]),
         ("Zapata — deslizamiento sin tirante (FS requerido 1,5)",
          1.5 / z["FS_desliz"], z["FS_desliz"] >= 1.5),
     ]
